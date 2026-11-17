@@ -1,0 +1,2349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sanmarg Odisha Walkathon — Registration, Gate QR Check-In &amp; Certificate Portal</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- QRious for QR Code Generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <!-- HTML5-QRCode for Live Camera Scanning -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            maroon: {
+              50: '#FDF2F2',
+              100: '#FCE4E5',
+              200: '#F8CBCD',
+              600: '#A5242B',
+              700: '#8B1E24',
+              800: '#70161B',
+              900: '#540F13',
+            },
+            gold: {
+              50: '#FEFBF2',
+              100: '#FDF4DC',
+              200: '#FAE6B2',
+              400: '#E8B346',
+              500: '#D99B26',
+              600: '#B87E16',
+            }
+          },
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            serif: ['"Playfair Display"', 'serif'],
+            script: ['"Great Vibes"', 'cursive'],
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #FAF8F5;
+      color: #1E293B;
+    }
+    .font-serif-display {
+      font-family: 'Playfair Display', serif;
+    }
+    .hero-pattern {
+      background-color: #8B1E24;
+      background-image: radial-gradient(rgba(217, 155, 38, 0.18) 1px, transparent 1px),
+                        radial-gradient(rgba(217, 155, 38, 0.12) 1px, #8B1E24 1px);
+      background-size: 28px 28px;
+      background-position: 0 0, 14px 14px;
+    }
+    .tab-panel {
+      animation: fadeSlide 0.25s ease-out;
+    }
+    @keyframes fadeSlide {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .otp-box:focus {
+      border-color: #8B1E24;
+      box-shadow: 0 0 0 3px rgba(139, 30, 36, 0.18);
+    }
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #printable-cert-wrapper, #printable-cert-wrapper * {
+        visibility: visible !important;
+      }
+      #printable-cert-wrapper {
+        position: fixed !important;
+        inset: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        background: #ffffff !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        z-index: 9999 !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-[calc(100%-2rem)] pointer-events-none"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between py-3 gap-3">
+        <!-- Brand Logo -->
+        <div class="flex items-center justify-between">
+          <a href="#register" onclick="switchTab('register'); return false;" class="flex items-center gap-3 group">
+            <div class="w-11 h-11 rounded-xl bg-maroon-700 text-gold-400 flex items-center justify-center font-serif-display font-bold text-2xl shadow-md border border-gold-500/40 group-hover:scale-105 transition-transform">
+              S
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-serif-display font-bold text-xl sm:text-2xl text-maroon-800 tracking-tight">Sanmarg Odisha</span>
+                <span class="hidden sm:inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-gold-100 text-maroon-800 border border-gold-400/60">sanmargodisha.in</span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium">Walkathon Registration, Gate Check-In &amp; Certificate Portal</p>
+            </div>
+          </a>
+
+          <span id="mobile-tab-badge" class="lg:hidden text-xs font-bold px-2.5 py-1 rounded-full bg-maroon-50 text-maroon-700 border border-maroon-200">
+            1. Register
+          </span>
+        </div>
+
+        <!-- 4-Step Portal Navigation -->
+        <nav class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0" aria-label="Primary Navigation">
+          <button type="button" onclick="switchTab('register')" id="tab-btn-register"
+            class="tab-nav-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all bg-maroon-700 text-white shadow-sm">
+            <i data-lucide="user-plus" class="w-4 h-4"></i>
+            <span>1. Register (QR-1)</span>
+          </button>
+
+          <button type="button" onclick="switchTab('certificate')" id="tab-btn-certificate"
+            class="tab-nav-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all bg-slate-100 text-slate-700 hover:bg-maroon-50 hover:text-maroon-700">
+            <i data-lucide="award" class="w-4 h-4"></i>
+            <span>2. OTP Login &amp; Certificate</span>
+          </button>
+
+          <button type="button" onclick="switchTab('checkin')" id="tab-btn-checkin"
+            class="tab-nav-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all bg-slate-100 text-slate-700 hover:bg-maroon-50 hover:text-maroon-700">
+            <i data-lucide="qr-code" class="w-4 h-4"></i>
+            <span>3. Gate Check-In (QR-2)</span>
+          </button>
+
+          <button type="button" onclick="switchTab('admin')" id="tab-btn-admin"
+            class="tab-nav-btn flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition-all bg-slate-100 text-slate-700 hover:bg-maroon-50 hover:text-maroon-700">
+            <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+            <span>4. Admin &amp; Analytics</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="flex-1">
+
+    <!-- =================================================================== -->
+    <!-- SECTION 1: REGISTER (QR-1) — LANDING & ENTRY PASS                   -->
+    <!-- =================================================================== -->
+    <section id="section-register" class="tab-panel">
+      <div class="hero-pattern text-white border-b-4 border-gold-500">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <!-- Left Hero Copy -->
+            <div class="lg:col-span-7 space-y-5">
+              <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-maroon-900/75 border border-gold-400/50 text-gold-200 text-xs font-bold tracking-wide uppercase">
+                <span class="w-2 h-2 rounded-full bg-gold-400 animate-pulse"></span>
+                Sanmarg Odisha Walkathon 2026 • Bhubaneswar &amp; Cuttack
+              </div>
+              <h1 class="font-serif-display text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
+                Walk for Health &amp; Pride with <span class="text-gold-400">Sanmarg Odisha</span>
+              </h1>
+              <p class="text-maroon-100 text-sm sm:text-base max-w-2xl leading-relaxed">
+                Register on <strong>sanmargodisha.in</strong> to receive your official Walkathon Entry QR Pass. Scan your QR Pass at the venue gate on event day to verify attendance and unlock your personalized Certificate of Participation.
+              </p>
+
+              <!-- 3-Step Flow Cards -->
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                <div class="bg-maroon-900/60 border border-white/15 rounded-xl p-4">
+                  <div class="text-gold-400 font-extrabold text-xs uppercase tracking-wider mb-1">Step 1 • Register</div>
+                  <p class="text-xs text-maroon-100 leading-relaxed">Enter your name &amp; mobile to generate your instant Venue Entry QR Pass.</p>
+                </div>
+                <div class="bg-maroon-900/60 border border-white/15 rounded-xl p-4">
+                  <div class="text-gold-400 font-extrabold text-xs uppercase tracking-wider mb-1">Step 2 • Gate Scan</div>
+                  <p class="text-xs text-maroon-100 leading-relaxed">Present your QR Pass at Gate Check-In (QR-2) when you attend the Walkathon.</p>
+                </div>
+                <div class="bg-maroon-900/60 border border-white/15 rounded-xl p-4">
+                  <div class="text-gold-400 font-extrabold text-xs uppercase tracking-wider mb-1">Step 3 • Certificate</div>
+                  <p class="text-xs text-maroon-100 leading-relaxed">Login via Mobile + OTP after check-in to download your named certificate.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Registration Form / Entry Pass Card -->
+            <div class="lg:col-span-5">
+              <!-- Form Card -->
+              <div id="reg-form-card" class="bg-white text-slate-900 rounded-2xl shadow-2xl border border-gold-400/50 p-6 sm:p-7">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
+                  <div>
+                    <h2 class="font-serif-display text-xl sm:text-2xl font-bold text-maroon-800">Walkathon Registration</h2>
+                    <p class="text-xs text-slate-500 mt-0.5">Name prints directly on your official certificate</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-lg bg-gold-100 text-maroon-800 font-extrabold text-xs border border-gold-400/50">QR-1</span>
+                </div>
+
+                <!-- Duplicate Mobile Alert Box -->
+                <div id="duplicate-mobile-alert" class="hidden mb-4 p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 text-xs space-y-2">
+                  <div class="font-bold flex items-center gap-1.5">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-amber-700"></i>
+                    <span>This mobile number is already registered!</span>
+                  </div>
+                  <p id="duplicate-mobile-msg" class="text-amber-800"></p>
+                  <button type="button" id="duplicate-goto-otp-btn"
+                    class="w-full py-2 px-3 rounded-lg bg-maroon-700 hover:bg-maroon-800 text-white font-bold text-xs transition">
+                    Go to OTP Login &amp; View Pass/Certificate →
+                  </button>
+                </div>
+
+                <form id="walkathon-reg-form" onsubmit="submitRegistration(event)" class="space-y-4">
+                  <div>
+                    <label for="input-reg-name" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Full Name (As on Certificate) <span class="text-maroon-700">*</span>
+                    </label>
+                    <input type="text" id="input-reg-name" required placeholder="e.g., Rajesh Kumar Mohanty"
+                      class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-maroon-700 focus:border-maroon-700" />
+                  </div>
+
+                  <div>
+                    <label for="input-reg-mobile" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      10-Digit Mobile Number <span class="text-maroon-700">*</span>
+                    </label>
+                    <div class="flex rounded-xl border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-maroon-700 focus-within:border-maroon-700">
+                      <span class="inline-flex items-center px-3 bg-slate-100 text-slate-700 text-sm font-bold border-r border-slate-300">+91</span>
+                      <input type="tel" id="input-reg-mobile" required maxlength="10" inputmode="numeric"
+                        oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                        placeholder="98610XXXXX"
+                        class="w-full px-3.5 py-2.5 text-sm font-semibold focus:outline-none" />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <div>
+                      <label for="input-reg-district" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        District in Odisha <span class="text-maroon-700">*</span>
+                      </label>
+                      <select id="input-reg-district" required
+                        class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-maroon-700">
+                        <option value="Khordha">Khordha (Bhubaneswar)</option>
+                        <option value="Cuttack">Cuttack</option>
+                        <option value="Puri">Puri</option>
+                        <option value="Ganjam">Ganjam (Berhampur)</option>
+                        <option value="Sambalpur">Sambalpur</option>
+                        <option value="Sundargarh">Sundargarh (Rourkela)</option>
+                        <option value="Balasore">Balasore</option>
+                        <option value="Bhadrak">Bhadrak</option>
+                        <option value="Angul">Angul</option>
+                        <option value="Dhenkanal">Dhenkanal</option>
+                        <option value="Jajpur">Jajpur</option>
+                        <option value="Kendrapara">Kendrapara</option>
+                        <option value="Jagatsinghpur">Jagatsinghpur</option>
+                        <option value="Mayurbhanj">Mayurbhanj</option>
+                        <option value="Keonjhar">Keonjhar</option>
+                        <option value="Koraput">Koraput</option>
+                        <option value="Jharsuguda">Jharsuguda</option>
+                        <option value="Bargarh">Bargarh</option>
+                        <option value="Bolangir">Bolangir</option>
+                        <option value="Kalahandi">Kalahandi</option>
+                        <option value="Other Odisha District">Other Odisha District</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label for="input-reg-category" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        Walkathon Category <span class="text-maroon-700">*</span>
+                      </label>
+                      <select id="input-reg-category" required
+                        class="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-maroon-700">
+                        <option value="5 KM Walkathon Runner">5 KM Walkathon Runner</option>
+                        <option value="3 KM Heritage Walk">3 KM Heritage Walk</option>
+                        <option value="Senior Citizen Walk">Senior Citizen Walk</option>
+                        <option value="Student / Youth Walk">Student / Youth Walk</option>
+                        <option value="VIP / Special Guest">VIP / Special Guest</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label for="input-reg-email" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                      Email Address <span class="text-slate-400 font-normal">(Optional)</span>
+                    </label>
+                    <input type="email" id="input-reg-email" placeholder="participant@example.com"
+                      class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-maroon-700" />
+                  </div>
+
+                  <button type="submit"
+                    class="w-full py-3.5 px-5 rounded-xl bg-maroon-700 hover:bg-maroon-800 active:scale-[0.99] text-white font-bold text-sm shadow-lg shadow-maroon-900/25 transition flex items-center justify-center gap-2">
+                    <span>Register &amp; Generate Entry QR Pass</span>
+                    <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                  </button>
+                </form>
+
+                <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                  <span>Already registered?</span>
+                  <button type="button" onclick="switchTab('certificate')" class="font-bold text-maroon-700 hover:underline">
+                    Login with OTP →
+                  </button>
+                </div>
+              </div>
+
+              <!-- Instant Entry Pass Card (Shown after Registration) -->
+              <div id="reg-pass-card" class="hidden bg-white text-slate-900 rounded-2xl shadow-2xl border-2 border-gold-500 p-6 sm:p-7">
+                <div class="text-center">
+                  <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 mb-2">
+                    <i data-lucide="check-circle-2" class="w-7 h-7"></i>
+                  </div>
+                  <h3 class="font-serif-display text-2xl font-bold text-maroon-800">Registration Confirmed!</h3>
+                  <p class="text-xs text-slate-500 mt-1">Show this Venue Entry QR Pass at the Walkathon Gate (QR-2)</p>
+                </div>
+
+                <!-- Digital Ticket -->
+                <div class="mt-5 rounded-2xl bg-gradient-to-br from-maroon-800 via-maroon-700 to-maroon-900 text-white p-5 border border-gold-400/60 shadow-inner">
+                  <div class="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
+                    <div>
+                      <span class="text-[10px] uppercase tracking-widest text-gold-400 font-bold">Registration ID</span>
+                      <div class="flex items-center gap-2">
+                        <span id="ticket-reg-id" class="font-mono font-extrabold text-lg text-white tracking-wider">SMO-2026-1005</span>
+                        <button type="button" onclick="copyCurrentRegId()" title="Copy Registration ID"
+                          class="p-1 rounded bg-white/10 hover:bg-white/20 text-gold-300 transition">
+                          <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        </button>
+                      </div>
+                    </div>
+                    <span id="ticket-category" class="px-2.5 py-1 rounded-full bg-gold-500 text-maroon-950 font-extrabold text-[11px] uppercase">5 KM Walk</span>
+                  </div>
+
+                  <div class="flex flex-col sm:flex-row items-center gap-4">
+                    <div class="bg-white p-2.5 rounded-xl shadow-md shrink-0">
+                      <canvas id="ticket-qr-canvas"></canvas>
+                    </div>
+                    <div class="text-center sm:text-left space-y-1">
+                      <div class="text-[11px] uppercase tracking-wider text-maroon-200">Participant Name</div>
+                      <div id="ticket-name" class="font-serif-display text-xl font-bold text-gold-200 leading-snug">Participant Name</div>
+                      <div id="ticket-meta" class="text-xs text-maroon-100">+91 XXXXXXXXXX • Khordha</div>
+                      <div class="pt-1.5">
+                        <span class="inline-flex items-center gap-1 text-[11px] font-semibold px-2.5 py-0.5 rounded bg-white/10 text-gold-300">
+                          Scan at Gate (QR-2) to Unlock Certificate
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pass Actions -->
+                <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <button type="button" onclick="downloadTicketQR()"
+                    class="py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Download QR Pass PNG</span>
+                  </button>
+                  <button type="button" onclick="goToOtpFromTicket()"
+                    class="py-2.5 px-4 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow transition">
+                    <span>Check Certificate Status →</span>
+                  </button>
+                </div>
+
+                <button type="button" onclick="resetRegFormView()" class="mt-3 w-full text-center text-xs font-semibold text-slate-500 hover:text-maroon-700 py-1">
+                  + Register Another Participant
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Event Stats Banner -->
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-maroon-700">Live Event Transparency</span>
+            <h3 class="font-serif-display text-2xl font-bold text-slate-900 mt-0.5">Sanmarg Odisha Walkathon Attendance &amp; Certification</h3>
+            <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl">
+              Certificates are unlocked automatically once your Venue Entry QR Pass is verified at <strong>Gate Check-In (QR-2)</strong>.
+            </p>
+          </div>
+          <div class="grid grid-cols-3 gap-3 sm:gap-4 shrink-0">
+            <div class="text-center px-4 py-3 rounded-xl bg-maroon-50 border border-maroon-100">
+              <div id="landing-stat-reg" class="text-2xl sm:text-3xl font-extrabold text-maroon-800">0</div>
+              <div class="text-[11px] font-bold text-slate-600 uppercase mt-0.5">Registered</div>
+            </div>
+            <div class="text-center px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-100">
+              <div id="landing-stat-att" class="text-2xl sm:text-3xl font-extrabold text-emerald-700">0</div>
+              <div class="text-[11px] font-bold text-slate-600 uppercase mt-0.5">Attended</div>
+            </div>
+            <div class="text-center px-4 py-3 rounded-xl bg-gold-100 border border-gold-400/50">
+              <div id="landing-stat-cert" class="text-2xl sm:text-3xl font-extrabold text-maroon-800">0</div>
+              <div class="text-[11px] font-bold text-slate-600 uppercase mt-0.5">Unlocked</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SECTION 2: OTP LOGIN & ATTENDANCE-GATED CERTIFICATE                 -->
+    <!-- =================================================================== -->
+    <section id="section-certificate" class="tab-panel hidden py-8 sm:py-12">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+        <!-- STEP A & B: OTP LOGIN CARD -->
+        <div id="otp-auth-card" class="max-w-md mx-auto bg-white rounded-2xl shadow-lg border border-slate-200 p-6 sm:p-8">
+          <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-maroon-50 text-maroon-700 border border-maroon-200 mb-3">
+              <i data-lucide="smartphone" class="w-6 h-6"></i>
+            </div>
+            <h2 class="font-serif-display text-2xl font-bold text-maroon-800">Participant OTP Login</h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">Verify your registered 10-digit mobile number to check Walkathon attendance &amp; download your certificate.</p>
+          </div>
+
+          <!-- Step A: Mobile Number Form -->
+          <div id="otp-step-mobile">
+            <form onsubmit="handleSendOtp(event)" class="space-y-4">
+              <div>
+                <label for="otp-mobile-input" class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                  Registered Mobile Number
+                </label>
+                <div class="flex rounded-xl border border-slate-300 overflow-hidden focus-within:ring-2 focus-within:ring-maroon-700 focus-within:border-maroon-700">
+                  <span class="inline-flex items-center px-3 bg-slate-100 text-slate-700 text-sm font-bold border-r border-slate-300">+91</span>
+                  <input type="tel" id="otp-mobile-input" required maxlength="10" inputmode="numeric"
+                    oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10)"
+                    placeholder="Enter 10-digit mobile"
+                    class="w-full px-3.5 py-2.5 text-sm font-semibold focus:outline-none" />
+                </div>
+              </div>
+
+              <button type="submit"
+                class="w-full py-3 px-4 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white font-bold text-sm shadow transition flex items-center justify-center gap-2">
+                <span>Send 6-Digit OTP</span>
+                <i data-lucide="send" class="w-4 h-4"></i>
+              </button>
+            </form>
+
+            <!-- Quick-Test Account Pills -->
+            <div class="mt-6 pt-4 border-t border-slate-100">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Quick-Test Accounts (Click to Fill &amp; Send OTP):</span>
+              </div>
+              <div id="quick-test-pills" class="flex flex-col gap-1.5"></div>
+            </div>
+          </div>
+
+          <!-- Step B: 6-Box OTP Verification Form -->
+          <div id="otp-step-verify" class="hidden space-y-5">
+            <!-- Prominent Demo SMS OTP Banner -->
+            <div class="p-3.5 rounded-xl bg-gold-100 border border-gold-400 text-maroon-950 space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold">Demo SMS OTP for <strong id="otp-display-phone">+91 XXXXXXXXXX</strong></span>
+                <span id="otp-demo-code" class="font-mono font-extrabold text-base bg-white px-2.5 py-0.5 rounded-lg border border-gold-500 text-maroon-800 tracking-wider">123456</span>
+              </div>
+              <button type="button" onclick="autoFillOtpBoxes()"
+                class="w-full py-1.5 px-3 rounded-lg bg-maroon-700 hover:bg-maroon-800 text-white font-bold text-xs transition flex items-center justify-center gap-1.5">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+                <span>Auto-Fill OTP &amp; Verify</span>
+              </button>
+            </div>
+
+            <form onsubmit="handleVerifyOtpSubmit(event)" class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 text-center">
+                  Enter 6-Digit Verification Code
+                </label>
+                <div id="otp-boxes-container" class="grid grid-cols-6 gap-2">
+                  <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-full h-12 text-center font-mono text-lg font-extrabold rounded-xl border-2 border-slate-300 focus:outline-none" />
+                  <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-full h-12 text-center font-mono text-lg font-extrabold rounded-xl border-2 border-slate-300 focus:outline-none" />
+                  <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-full h-12 text-center font-mono text-lg font-extrabold rounded-xl border-2 border-slate-300 focus:outline-none" />
+                  <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-full h-12 text-center font-mono text-lg font-extrabold rounded-xl border-2 border-slate-300 focus:outline-none" />
+                  <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-full h-12 text-center font-mono text-lg font-extrabold rounded-xl border-2 border-slate-300 focus:outline-none" />
+                  <input type="text" inputmode="numeric" maxlength="1" class="otp-box w-full h-12 text-center font-mono text-lg font-extrabold rounded-xl border-2 border-slate-300 focus:outline-none" />
+                </div>
+              </div>
+
+              <button type="submit"
+                class="w-full py-3 px-4 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm shadow transition flex items-center justify-center gap-2">
+                <i data-lucide="shield-check" class="w-4 h-4"></i>
+                <span>Verify OTP &amp; Continue</span>
+              </button>
+            </form>
+
+            <div class="flex items-center justify-between pt-2 border-t border-slate-100 text-xs">
+              <button type="button" onclick="backToMobileStep()" class="font-bold text-slate-600 hover:text-maroon-700">
+                ← Change Mobile Number
+              </button>
+              <button type="button" onclick="resendDemoOtp()" class="font-bold text-maroon-700 hover:underline">
+                Resend OTP
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP C: LOGGED-IN PARTICIPANT DASHBOARD & ATTENDANCE-GATED CERTIFICATE -->
+        <div id="participant-dashboard" class="hidden space-y-6">
+          <!-- Profile Header Card -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="flex items-start sm:items-center gap-4">
+              <div class="w-14 h-14 rounded-2xl bg-maroon-700 text-gold-400 flex items-center justify-center font-serif-display font-bold text-2xl shrink-0 shadow">
+                <span id="dash-initial">R</span>
+              </div>
+              <div>
+                <div class="flex flex-wrap items-center gap-2">
+                  <h2 id="dash-name" class="font-serif-display text-xl sm:text-2xl font-bold text-slate-900">Participant Name</h2>
+                  <span id="dash-id" class="font-mono text-xs font-extrabold px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200">SMO-2026-1001</span>
+                </div>
+                <p id="dash-submeta" class="text-xs sm:text-sm text-slate-500 mt-0.5">+91 9861011111 • Cuttack • 5 KM Walkathon Runner</p>
+                <div class="flex flex-wrap items-center gap-2 mt-2">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-700">
+                    ✓ Registered
+                  </span>
+                  <span id="dash-status-pill" class="inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                    ATTENDED
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" onclick="logoutParticipant()"
+              class="self-start md:self-center px-4 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition flex items-center gap-1.5">
+              <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+              <span>Logout / Check Another Number</span>
+            </button>
+          </div>
+
+          <!-- Main Grid: Certificate Preview (8 cols) + Entry QR Pass (4 cols) -->
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left: Certificate Area -->
+            <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <h3 class="font-serif-display text-xl font-bold text-maroon-800">Official Walkathon Certificate</h3>
+                  <p id="cert-panel-desc" class="text-xs text-slate-500">Personalized Certificate of Participation</p>
+                </div>
+
+                <!-- Enabled Download/Print Buttons (ONLY when attended === true) -->
+                <div id="cert-enabled-btns" class="hidden flex flex-wrap items-center gap-2">
+                  <button type="button" onclick="downloadParticipantCertificatePng()"
+                    class="px-4 py-2.5 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white text-xs font-bold shadow flex items-center gap-1.5 transition">
+                    <i data-lucide="download" class="w-4 h-4"></i>
+                    <span>Download Certificate (PNG)</span>
+                  </button>
+                  <button type="button" onclick="printParticipantCertificate()"
+                    class="px-4 py-2.5 rounded-xl bg-gold-500 hover:bg-gold-600 text-maroon-950 text-xs font-extrabold shadow flex items-center gap-1.5 transition">
+                    <i data-lucide="printer" class="w-4 h-4"></i>
+                    <span>Print / Save PDF</span>
+                  </button>
+                </div>
+
+                <!-- Disabled Buttons (ONLY when attended === false) -->
+                <div id="cert-disabled-btns" class="hidden flex flex-wrap items-center gap-2">
+                  <button type="button" disabled
+                    class="px-3.5 py-2 rounded-xl bg-slate-200 text-slate-500 text-xs font-bold cursor-not-allowed flex items-center gap-1.5">
+                    <i data-lucide="lock" class="w-3.5 h-3.5"></i>
+                    <span>Download Locked</span>
+                  </button>
+                  <button type="button" disabled
+                    class="px-3.5 py-2 rounded-xl bg-slate-200 text-slate-500 text-xs font-bold cursor-not-allowed flex items-center gap-1.5">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                    <span>Print Locked</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- LOCKED STATE VIEW (Never renders real certificate canvas when attended === false) -->
+              <div id="cert-locked-box" class="hidden rounded-2xl border-2 border-dashed border-amber-400 bg-gradient-to-b from-amber-50/90 to-slate-100 p-6 sm:p-10 text-center space-y-4">
+                <div class="w-16 h-16 rounded-2xl bg-maroon-800 text-gold-400 border-2 border-gold-400 mx-auto flex items-center justify-center shadow-lg">
+                  <i data-lucide="lock" class="w-8 h-8"></i>
+                </div>
+                <span class="inline-block px-3 py-1 rounded-full bg-amber-200 text-amber-950 font-extrabold text-[11px] uppercase tracking-wider">
+                  NOT ATTENDED — PENDING GATE CHECK-IN
+                </span>
+                <h4 class="font-serif-display text-2xl font-bold text-slate-900">
+                  Certificate Download Locked Until Walkathon Check-In
+                </h4>
+                <p class="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+                  You are registered for the <strong>Sanmarg Odisha Walkathon</strong>, but your venue attendance has not been verified yet. Please scan your Venue Entry QR Pass at <strong>Gate Check-In (QR-2)</strong> to unlock your personalized certificate.
+                </p>
+                <div class="pt-2">
+                  <button type="button" onclick="goToCheckinWithPrefill()"
+                    class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white font-bold text-xs sm:text-sm shadow-md transition">
+                    <i data-lucide="qr-code" class="w-4 h-4"></i>
+                    <span>Go to Gate Check-In (QR-2) →</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- UNLOCKED STATE VIEW (High-Resolution Canvas rendered ONLY when attended === true) -->
+              <div id="printable-cert-wrapper" class="hidden rounded-xl overflow-hidden border-2 border-gold-500/70 shadow-md bg-white">
+                <canvas id="participant-cert-canvas" width="1200" height="850" class="w-full h-auto block"></canvas>
+              </div>
+            </div>
+
+            <!-- Right: Venue Entry QR Pass Card -->
+            <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm flex flex-col justify-between">
+              <div>
+                <h3 class="font-serif-display text-lg font-bold text-maroon-800">Venue Entry QR Pass</h3>
+                <p class="text-xs text-slate-500 mt-1">Show this QR code at the Walkathon entrance gate for instant check-in.</p>
+
+                <div class="mt-5 p-5 rounded-2xl bg-maroon-50 border border-maroon-200 flex flex-col items-center text-center">
+                  <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+                    <canvas id="dash-entry-qr"></canvas>
+                  </div>
+                  <div id="dash-qr-regid" class="font-mono font-extrabold text-sm text-maroon-800 mt-3">SMO-2026-1001</div>
+                  <div id="dash-qr-caption" class="text-[11px] font-semibold text-slate-600 mt-1">Valid for Walkathon Gate Scan</div>
+                </div>
+              </div>
+
+              <div class="mt-5 pt-4 border-t border-slate-100 space-y-2">
+                <button type="button" onclick="downloadDashEntryQr()"
+                  class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-1.5">
+                  <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                  <span>Download QR Pass PNG</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SECTION 3: GATE CHECK-IN (QR-2) — VENUE VERIFICATION                -->
+    <!-- =================================================================== -->
+    <section id="section-checkin" class="tab-panel hidden py-8 sm:py-12">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+
+        <!-- Gate Scanner Header Banner -->
+        <div class="bg-maroon-800 text-white rounded-2xl p-6 shadow-lg border-b-4 border-gold-500 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="text-[11px] font-extrabold uppercase tracking-widest text-gold-400">Volunteer &amp; Gate Verification Desk (QR-2)</span>
+            <h2 class="font-serif-display text-2xl sm:text-3xl font-bold mt-0.5">Walkathon Gate Check-In &amp; Certificate Unlock</h2>
+            <p class="text-xs sm:text-sm text-maroon-100 mt-1">Verify arriving participants via ID/Mobile lookup, camera QR scan, or 1-click pending queue.</p>
+          </div>
+          <div class="flex items-center gap-2.5 bg-maroon-900/80 px-4 py-2.5 rounded-xl border border-gold-400/30 self-start sm:self-center">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+            <span class="text-xs font-bold text-gold-200">Gate Desk Active</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+          <!-- Left 7 Cols: 3 Seamless Check-In Methods -->
+          <div class="lg:col-span-7 space-y-6">
+
+            <!-- Method 1: Manual / Instant Lookup Search -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-[11px] font-extrabold uppercase tracking-wider text-maroon-700">Method 1 • Instant Lookup</span>
+                  <h3 class="font-serif-display text-lg font-bold text-slate-900">Search by Reg ID, Mobile Number, or Name</h3>
+                </div>
+                <i data-lucide="search" class="w-5 h-5 text-maroon-700"></i>
+              </div>
+
+              <form onsubmit="handleGateSearchSubmit(event)" class="flex flex-col sm:flex-row gap-2.5">
+                <input type="text" id="gate-search-input"
+                  oninput="renderGateInstantMatches(this.value)"
+                  placeholder="Type SMO-2026-1003, 1003, 9937033333, or Debashis..."
+                  class="flex-1 px-4 py-3 rounded-xl border border-slate-300 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-maroon-700" />
+                <button type="submit"
+                  class="px-5 py-3 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white font-bold text-sm shadow transition whitespace-nowrap">
+                  Verify &amp; Check In
+                </button>
+              </form>
+
+              <!-- Live Instant Search Matches -->
+              <div id="gate-instant-matches" class="space-y-2"></div>
+            </div>
+
+            <!-- Method 2: Live Camera QR Scanner (Html5Qrcode with graceful fallback) -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-4">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <span class="text-[11px] font-extrabold uppercase tracking-wider text-maroon-700">Method 2 • Optical Camera Scan</span>
+                  <h3 class="font-serif-display text-lg font-bold text-slate-900">Scan Participant Entry QR Pass</h3>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" id="btn-start-camera" onclick="startGateCameraScanner()"
+                    class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs flex items-center gap-1.5 transition">
+                    <i data-lucide="camera" class="w-3.5 h-3.5"></i>
+                    <span>Start Camera Scanner</span>
+                  </button>
+                  <button type="button" id="btn-stop-camera" onclick="stopGateCameraScanner()"
+                    class="hidden px-3.5 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold text-xs transition">
+                    Stop Camera
+                  </button>
+                </div>
+              </div>
+
+              <div id="gate-camera-box" class="rounded-xl bg-slate-900 text-white overflow-hidden border border-slate-700">
+                <div id="qr-reader" class="w-full"></div>
+                <div id="camera-status-banner" class="p-4 text-center text-xs text-slate-300">
+                  Click <strong>"Start Camera Scanner"</strong> to scan a participant's QR code via webcam/phone camera, or use Instant Lookup / Pending Queue.
+                </div>
+              </div>
+            </div>
+
+            <!-- Method 3: Quick Pending Walkers Queue (1-Click Check-In) -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-3">
+              <div class="flex items-center justify-between">
+                <div>
+                  <span class="text-[11px] font-extrabold uppercase tracking-wider text-amber-700">Method 3 • 1-Click Fast Check-In</span>
+                  <h3 class="font-serif-display text-lg font-bold text-slate-900">Pending Walkers Awaiting Gate Check-In</h3>
+                </div>
+                <span id="pending-queue-count" class="px-2.5 py-1 rounded-full bg-amber-100 text-amber-900 font-extrabold text-xs">0 Pending</span>
+              </div>
+
+              <div id="pending-walkers-list" class="divide-y divide-slate-100 max-h-72 overflow-y-auto"></div>
+            </div>
+
+          </div>
+
+          <!-- Right 5 Cols: Verification Result Card + Recent Gate Check-Ins -->
+          <div class="lg:col-span-5 space-y-6">
+
+            <!-- Verification Result Display -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+              <h3 class="font-serif-display text-lg font-bold text-maroon-800 mb-3">Gate Verification Status</h3>
+
+              <!-- Default Placeholder -->
+              <div id="gate-result-empty" class="rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 p-6 text-center space-y-2">
+                <div class="w-12 h-12 rounded-full bg-slate-200 text-slate-500 mx-auto flex items-center justify-center">
+                  <i data-lucide="scan-line" class="w-6 h-6"></i>
+                </div>
+                <div class="font-bold text-sm text-slate-700">Ready for Next Participant</div>
+                <p class="text-xs text-slate-500">Search an ID/Mobile, scan a QR code, or click <strong>"Check In Now"</strong> on any pending participant.</p>
+              </div>
+
+              <!-- Dynamic Result Card -->
+              <div id="gate-result-card" class="hidden rounded-2xl border-2 p-5 transition-all">
+                <div class="flex items-center gap-3 mb-3">
+                  <div id="gate-res-icon" class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 font-bold text-xl"></div>
+                  <div>
+                    <span id="gate-res-badge" class="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1">STATUS</span>
+                    <h4 id="gate-res-title" class="font-serif-display text-xl font-bold">Participant Name</h4>
+                  </div>
+                </div>
+                <div id="gate-res-body" class="bg-white/90 rounded-xl p-3.5 border border-black/5 space-y-1.5 text-xs"></div>
+                <div id="gate-res-footer" class="mt-3 text-xs font-bold"></div>
+              </div>
+            </div>
+
+            <!-- Live Recent Gate Check-Ins Feed -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-serif-display text-lg font-bold text-maroon-800">Verified Gate Check-Ins</h3>
+                <span id="gate-checkedin-count" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">0 Verified</span>
+              </div>
+              <div id="recent-checkins-feed" class="space-y-2.5 max-h-80 overflow-y-auto"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- SECTION 4: ADMIN & ANALYTICS DASHBOARD                              -->
+    <!-- =================================================================== -->
+    <section id="section-admin" class="tab-panel hidden py-8 sm:py-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- Top Title & Export Buttons -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="text-xs font-extrabold uppercase tracking-wider text-maroon-700">Organizer Control Panel</span>
+            <h2 class="font-serif-display text-2xl sm:text-3xl font-bold text-slate-900">Sanmarg Odisha Walkathon Analytics &amp; Setup</h2>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="exportAttendeesCsv()"
+              class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow flex items-center gap-1.5 transition">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+              <span>Export CSV Report</span>
+            </button>
+            <button type="button" onclick="resetSeedData()"
+              class="px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-bold transition">
+              Reset Demo Data
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Live KPI Cards + Attendance Turnout Progress Bar -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-maroon-50/70 border border-maroon-100">
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Registered</div>
+              <div id="admin-kpi-reg" class="text-3xl font-extrabold text-maroon-800 mt-1">0</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">Via QR-1 &amp; Web Portal</div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-emerald-50/70 border border-emerald-100">
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Total Attended (Verified)</div>
+              <div id="admin-kpi-att" class="text-3xl font-extrabold text-emerald-700 mt-1">0</div>
+              <div id="admin-kpi-rate-text" class="text-[11px] font-bold text-emerald-700 mt-0.5">0% turnout</div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-amber-50/70 border border-amber-100">
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Pending / No-Show</div>
+              <div id="admin-kpi-pend" class="text-3xl font-extrabold text-amber-700 mt-1">0</div>
+              <div class="text-[11px] text-slate-500 mt-0.5">Certificates locked</div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-gold-100/70 border border-gold-400/50">
+              <div class="text-xs font-bold uppercase tracking-wider text-slate-500">Certificates Unlocked</div>
+              <div id="admin-kpi-cert" class="text-3xl font-extrabold text-maroon-800 mt-1">0</div>
+              <div class="text-[11px] text-slate-600 mt-0.5">Ready for OTP download</div>
+            </div>
+          </div>
+
+          <!-- Attendance Rate Progress Bar -->
+          <div>
+            <div class="flex items-center justify-between text-xs font-bold text-slate-600 mb-1.5">
+              <span>Live Walkathon Turnout Progress</span>
+              <span id="admin-progress-label">0 / 0 Verified (0%)</span>
+            </div>
+            <div class="w-full h-3 rounded-full bg-slate-100 overflow-hidden border border-slate-200">
+              <div id="admin-progress-bar" class="h-full bg-gradient-to-r from-maroon-700 via-gold-500 to-emerald-600 transition-all duration-500" style="width: 0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Certificate Template Studio & Event QR Posters -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Certificate Template Studio (7 cols) -->
+          <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+              <div>
+                <h3 class="font-serif-display text-xl font-bold text-maroon-800">Certificate Template Studio</h3>
+                <p class="text-xs text-slate-500">Upload a custom JPG/PNG certificate design or customize the built-in Sanmarg Odisha template.</p>
+              </div>
+              <button type="button" onclick="resetCertificateTemplate()" class="text-xs font-bold text-maroon-700 hover:underline self-start sm:self-center">
+                Reset Default Design
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Upload Custom Template (JPG/PNG)</label>
+                <input type="file" id="admin-cert-file" accept="image/png, image/jpeg" onchange="handleCustomTemplateUpload(event)"
+                  class="block w-full text-xs text-slate-600 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-maroon-50 file:text-maroon-700 hover:file:bg-maroon-100 cursor-pointer border border-slate-200 rounded-xl p-1" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">Sample Preview Name</label>
+                <input type="text" id="admin-sample-name" value="Rajesh Kumar Mohanty" oninput="renderAdminCertPreview()"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-maroon-700" />
+              </div>
+            </div>
+
+            <!-- Placement & Typography Controls -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">X Pos (<span id="lbl-x">50</span>%)</label>
+                <input type="range" id="ctrl-x" min="20" max="80" value="50" oninput="onCertStyleChange()" class="w-full accent-maroon-700" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Y Pos (<span id="lbl-y">51</span>%)</label>
+                <input type="range" id="ctrl-y" min="15" max="85" value="51" oninput="onCertStyleChange()" class="w-full accent-maroon-700" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Size (<span id="lbl-size">54</span>px)</label>
+                <input type="range" id="ctrl-size" min="24" max="88" value="54" oninput="onCertStyleChange()" class="w-full accent-maroon-700" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Font Style</label>
+                <select id="ctrl-font" onchange="onCertStyleChange()" class="w-full px-2 py-1 rounded-lg border border-slate-300 text-xs font-semibold bg-white">
+                  <option value="serif">Serif (Classic)</option>
+                  <option value="sans">Sans (Modern)</option>
+                  <option value="cursive">Cursive (Script)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Text Color</label>
+                <div class="flex items-center gap-1.5">
+                  <input type="color" id="ctrl-color" value="#8B1E24" oninput="onCertStyleChange()" class="h-7 w-9 rounded cursor-pointer border border-slate-300" />
+                  <span id="lbl-color" class="font-mono text-[10px] text-slate-600">#8B1E24</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="rounded-xl overflow-hidden border border-slate-300 bg-slate-100">
+              <canvas id="admin-preview-canvas" width="1200" height="850" class="w-full h-auto block"></canvas>
+            </div>
+          </div>
+
+          <!-- Event QR Codes Poster Generator (5 cols) -->
+          <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-5">
+            <div>
+              <div class="border-b border-slate-100 pb-4">
+                <h3 class="font-serif-display text-xl font-bold text-maroon-800">Official Event QR Posters</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Print and display these QR codes at registration standees and venue gates.</p>
+              </div>
+
+              <div class="mt-4 space-y-4">
+                <!-- QR-1 -->
+                <div class="p-4 rounded-2xl bg-maroon-50 border border-maroon-200 flex items-center gap-4">
+                  <div class="bg-white p-2 rounded-xl border border-slate-200 shrink-0 shadow-sm">
+                    <canvas id="admin-qr1-canvas"></canvas>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-maroon-700 text-white">QR-1 • Registration</span>
+                    <h4 class="font-bold text-sm text-slate-900 mt-1">Participant Registration Page</h4>
+                    <p class="text-[11px] text-slate-600 truncate">sanmargodisha.in/?tab=register</p>
+                    <button type="button" onclick="downloadAdminQr('admin-qr1-canvas', 'SanmargOdisha-QR1-Register.png')"
+                      class="mt-2 px-3 py-1.5 rounded-lg bg-white border border-maroon-300 hover:bg-maroon-700 hover:text-white text-maroon-800 text-xs font-bold transition">
+                      Download QR-1 PNG
+                    </button>
+                  </div>
+                </div>
+
+                <!-- QR-2 -->
+                <div class="p-4 rounded-2xl bg-gold-100/70 border border-gold-400 flex items-center gap-4">
+                  <div class="bg-white p-2 rounded-xl border border-slate-200 shrink-0 shadow-sm">
+                    <canvas id="admin-qr2-canvas"></canvas>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <span class="inline-block text-[10px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-gold-500 text-maroon-950">QR-2 • Gate Check-In</span>
+                    <h4 class="font-bold text-sm text-slate-900 mt-1">Venue Gate Verification Desk</h4>
+                    <p class="text-[11px] text-slate-600 truncate">sanmargodisha.in/?tab=checkin</p>
+                    <button type="button" onclick="downloadAdminQr('admin-qr2-canvas', 'SanmargOdisha-QR2-CheckIn.png')"
+                      class="mt-2 px-3 py-1.5 rounded-lg bg-white border border-gold-500 hover:bg-gold-500 text-maroon-950 text-xs font-bold transition">
+                      Download QR-2 PNG
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-1">
+              <div class="font-bold text-slate-800">Walkathon Verification Workflow:</div>
+              <p>• <strong>QR-1</strong> registers participants and issues their unique <code class="font-mono text-maroon-700">SMO-2026-XXXX</code> QR Pass.</p>
+              <p>• <strong>QR-2</strong> verifies participants at the venue gate and unlocks their certificate for OTP download.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master Attendee Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="p-5 sm:p-6 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h3 class="font-serif-display text-xl font-bold text-maroon-800">Master Participant &amp; Gate Attendance Registry</h3>
+              <p class="text-xs text-slate-500">Search, filter, or manually toggle venue attendance status</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+              <input type="text" id="admin-table-search" oninput="renderMasterTable()"
+                placeholder="Search ID, Name, Mobile, District..."
+                class="px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-maroon-700" />
+
+              <div class="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+                <button type="button" onclick="setMasterFilter('all')" id="mfilter-all" class="mfilter-btn px-3 py-1.5 rounded-lg bg-white text-maroon-800 shadow-sm">All</button>
+                <button type="button" onclick="setMasterFilter('attended')" id="mfilter-attended" class="mfilter-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Attended</button>
+                <button type="button" onclick="setMasterFilter('pending')" id="mfilter-pending" class="mfilter-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900">Pending</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <th class="py-3.5 px-4">Reg ID</th>
+                  <th class="py-3.5 px-4">Participant</th>
+                  <th class="py-3.5 px-4">Mobile &amp; District</th>
+                  <th class="py-3.5 px-4">Category</th>
+                  <th class="py-3.5 px-4">Gate Attendance</th>
+                  <th class="py-3.5 px-4">Certificate</th>
+                  <th class="py-3.5 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="master-table-tbody" class="divide-y divide-slate-100 text-xs sm:text-sm"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white border-t border-slate-200 mt-12">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+      <div class="flex items-center gap-2">
+        <span class="font-serif-display font-bold text-maroon-800 text-sm">Sanmarg Odisha</span>
+        <span>•</span>
+        <span>sanmargodisha.in</span>
+      </div>
+      <div>
+        Official Walkathon Registration, QR Gate Verification &amp; Certificate Portal
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===================================================================== -->
+  <!-- JAVASCRIPT APPLICATION LOGIC                                          -->
+  <!-- ===================================================================== -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. PERSISTENT STATE & SEED DATA (sanmarg_walkathon_v2_data)
+    // -------------------------------------------------------------------------
+    const STORAGE_KEY = 'sanmarg_walkathon_v2_data';
+
+    const DEFAULT_CERT_STYLE = {
+      customImage: null,
+      xPercent: 50,
+      yPercent: 51,
+      fontSize: 54,
+      fontFamily: 'serif',
+      color: '#8B1E24'
+    };
+
+    const SEED_PARTICIPANTS = [
+      {
+        id: 'SMO-2026-1001',
+        name: 'Rajesh Kumar Mohanty',
+        mobile: '9861011111',
+        district: 'Cuttack',
+        category: '5 KM Walkathon Runner',
+        email: 'rajesh.mohanty@example.com',
+        registeredAt: '06:15 AM',
+        attended: true,
+        checkInTime: '06:42 AM'
+      },
+      {
+        id: 'SMO-2026-1002',
+        name: 'Subhashree Panda',
+        mobile: '9437022222',
+        district: 'Khordha',
+        category: '3 KM Heritage Walk',
+        email: 'subhashree.panda@example.com',
+        registeredAt: '06:20 AM',
+        attended: true,
+        checkInTime: '06:48 AM'
+      },
+      {
+        id: 'SMO-2026-1003',
+        name: 'Debashis Das',
+        mobile: '9937033333',
+        district: 'Cuttack',
+        category: '5 KM Walkathon Runner',
+        email: 'debashis.das@example.com',
+        registeredAt: '06:25 AM',
+        attended: false,
+        checkInTime: null
+      },
+      {
+        id: 'SMO-2026-1004',
+        name: 'Ananya Rout',
+        mobile: '9178044444',
+        district: 'Puri',
+        category: 'Senior Citizen Walk',
+        email: 'ananya.rout@example.com',
+        registeredAt: '06:30 AM',
+        attended: false,
+        checkInTime: null
+      }
+    ];
+
+    let appState = {
+      participants: [],
+      certStyle: { ...DEFAULT_CERT_STYLE }
+    };
+
+    let loadedCustomBgImage = null;
+    let activeTab = 'register';
+    let lastCreatedParticipant = null;
+
+    // OTP & Logged-in Session State
+    let otpTargetMobile = null;
+    let activeDemoOtp = null;
+    let loggedInParticipantId = null;
+
+    // Gate Scanner State
+    let html5QrScanner = null;
+    let isCameraRunning = false;
+    let lastScannedCode = '';
+    let lastScanTimestamp = 0;
+
+    // Admin Filter State
+    let masterTableFilter = 'all';
+
+    function loadAppState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          appState.participants = Array.isArray(parsed.participants) && parsed.participants.length > 0
+            ? parsed.participants
+            : JSON.parse(JSON.stringify(SEED_PARTICIPANTS));
+          appState.certStyle = { ...DEFAULT_CERT_STYLE, ...(parsed.certStyle || {}) };
+        } else {
+          appState.participants = JSON.parse(JSON.stringify(SEED_PARTICIPANTS));
+          appState.certStyle = { ...DEFAULT_CERT_STYLE };
+          saveAppState();
+        }
+      } catch (err) {
+        appState.participants = JSON.parse(JSON.stringify(SEED_PARTICIPANTS));
+        appState.certStyle = { ...DEFAULT_CERT_STYLE };
+      }
+
+      if (appState.certStyle.customImage) {
+        const img = new Image();
+        img.onload = () => {
+          loadedCustomBgImage = img;
+          renderAdminCertPreview();
+          if (loggedInParticipantId) renderParticipantDashboard();
+        };
+        img.src = appState.certStyle.customImage;
+      }
+    }
+
+    function saveAppState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      } catch (e) {
+        // Fallback if custom uploaded image exceeds localStorage quota
+        const lightCopy = {
+          participants: appState.participants,
+          certStyle: { ...appState.certStyle, customImage: null }
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(lightCopy));
+      }
+      updateAllCounters();
+    }
+
+    // -------------------------------------------------------------------------
+    // 2. TOAST NOTIFICATION SYSTEM
+    // -------------------------------------------------------------------------
+    function showToast(msg, variant = 'maroon') {
+      const container = document.getElementById('toast-container');
+      const el = document.createElement('div');
+      const styles = {
+        maroon: 'bg-maroon-800 text-white border-gold-400',
+        emerald: 'bg-emerald-800 text-white border-emerald-400',
+        amber: 'bg-amber-800 text-white border-amber-300',
+        red: 'bg-red-800 text-white border-red-300'
+      };
+      el.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-xl border text-xs font-bold flex items-center justify-between gap-3 ${styles[variant] || styles.maroon}`;
+      el.innerHTML = `<span>${msg}</span><button type="button" onclick="this.parentElement.remove()" class="text-white/80 hover:text-white">✕</button>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        if (el.parentElement) el.remove();
+      }, 4500);
+    }
+
+    // -------------------------------------------------------------------------
+    // 3. TAB ROUTING & URL QUERY SUPPORT (?tab=register|certificate|checkin|admin)
+    // -------------------------------------------------------------------------
+    function switchTab(tabName) {
+      // Stop camera if leaving checkin tab
+      if (activeTab === 'checkin' && tabName !== 'checkin' && isCameraRunning) {
+        stopGateCameraScanner();
+      }
+
+      activeTab = tabName;
+      const allTabs = ['register', 'certificate', 'checkin', 'admin'];
+      const labels = {
+        register: '1. Register',
+        certificate: '2. OTP & Cert',
+        checkin: '3. Gate Check-In',
+        admin: '4. Admin'
+      };
+
+      allTabs.forEach(t => {
+        const sec = document.getElementById(`section-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabName) {
+          sec.classList.remove('hidden');
+          btn.classList.remove('bg-slate-100', 'text-slate-700');
+          btn.classList.add('bg-maroon-700', 'text-white', 'shadow-sm');
+        } else {
+          sec.classList.add('hidden');
+          btn.classList.remove('bg-maroon-700', 'text-white', 'shadow-sm');
+          btn.classList.add('bg-slate-100', 'text-slate-700');
+        }
+      });
+
+      const badge = document.getElementById('mobile-tab-badge');
+      if (badge) badge.textContent = labels[tabName] || 'Portal';
+
+      if (tabName === 'certificate') {
+        renderQuickTestPills();
+        if (loggedInParticipantId) {
+          renderParticipantDashboard();
+        }
+      } else if (tabName === 'checkin') {
+        renderPendingWalkersQueue();
+        renderRecentCheckinsFeed();
+        const currentSearch = document.getElementById('gate-search-input').value;
+        renderGateInstantMatches(currentSearch);
+      } else if (tabName === 'admin') {
+        syncCertControlsUI();
+        renderAdminCertPreview();
+        renderAdminEventQrs();
+        renderMasterTable();
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // -------------------------------------------------------------------------
+    // 4. SECTION 1: REGISTRATION (QR-1) & ENTRY PASS
+    // -------------------------------------------------------------------------
+    function submitRegistration(e) {
+      e.preventDefault();
+      const name = document.getElementById('input-reg-name').value.trim();
+      const mobile = document.getElementById('input-reg-mobile').value.replace(/[^0-9]/g, '');
+      const district = document.getElementById('input-reg-district').value;
+      const category = document.getElementById('input-reg-category').value;
+      const email = document.getElementById('input-reg-email').value.trim();
+
+      const dupAlert = document.getElementById('duplicate-mobile-alert');
+      dupAlert.classList.add('hidden');
+
+      if (!name) {
+        showToast('Please enter your full name.', 'red');
+        return;
+      }
+      if (mobile.length !== 10) {
+        showToast('Please enter a valid 10-digit mobile number.', 'red');
+        return;
+      }
+
+      // Check duplicate mobile
+      const existing = appState.participants.find(p => p.mobile === mobile);
+      if (existing) {
+        dupAlert.classList.remove('hidden');
+        document.getElementById('duplicate-mobile-msg').textContent =
+          `${existing.name} (${existing.id}) is already registered with +91 ${mobile}.`;
+        document.getElementById('duplicate-goto-otp-btn').onclick = () => {
+          switchTab('certificate');
+          quickStartOtpForMobile(mobile);
+        };
+        showToast('Mobile number already registered! Use OTP Login.', 'amber');
+        return;
+      }
+
+      // Generate next Registration ID (SMO-2026-1005+)
+      const maxNum = appState.participants.reduce((max, p) => {
+        const num = parseInt(p.id.split('-').pop(), 10);
+        return !isNaN(num) && num > max ? num : max;
+      }, 1000);
+      const newId = `SMO-2026-${maxNum + 1}`;
+
+      const newParticipant = {
+        id: newId,
+        name,
+        mobile,
+        district,
+        category,
+        email,
+        registeredAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        attended: false,
+        checkInTime: null
+      };
+
+      appState.participants.unshift(newParticipant);
+      saveAppState();
+      lastCreatedParticipant = newParticipant;
+      displayRegistrationTicket(newParticipant);
+      showToast(`Registered! Your ID is ${newId}`, 'emerald');
+    }
+
+    function displayRegistrationTicket(participant) {
+      document.getElementById('reg-form-card').classList.add('hidden');
+      document.getElementById('reg-pass-card').classList.remove('hidden');
+
+      document.getElementById('ticket-reg-id').textContent = participant.id;
+      document.getElementById('ticket-category').textContent = participant.category;
+      document.getElementById('ticket-name').textContent = participant.name;
+      document.getElementById('ticket-meta').textContent = `+91 ${participant.mobile} • ${participant.district}`;
+
+      new QRious({
+        element: document.getElementById('ticket-qr-canvas'),
+        value: participant.id,
+        size: 135,
+        foreground: '#540F13',
+        background: '#FFFFFF',
+        level: 'H'
+      });
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function copyCurrentRegId() {
+      if (!lastCreatedParticipant) return;
+      const temp = document.createElement('textarea');
+      temp.value = lastCreatedParticipant.id;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      showToast(`Copied Registration ID: ${lastCreatedParticipant.id}`, 'emerald');
+    }
+
+    function downloadTicketQR() {
+      if (!lastCreatedParticipant) return;
+      const canvas = document.getElementById('ticket-qr-canvas');
+      const link = document.createElement('a');
+      link.download = `${lastCreatedParticipant.id}-EntryPass.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('Entry QR Pass downloaded!', 'emerald');
+    }
+
+    function goToOtpFromTicket() {
+      if (!lastCreatedParticipant) return;
+      const mob = lastCreatedParticipant.mobile;
+      switchTab('certificate');
+      quickStartOtpForMobile(mob);
+    }
+
+    function resetRegFormView() {
+      document.getElementById('walkathon-reg-form').reset();
+      document.getElementById('duplicate-mobile-alert').classList.add('hidden');
+      document.getElementById('reg-pass-card').classList.add('hidden');
+      document.getElementById('reg-form-card').classList.remove('hidden');
+    }
+
+    // -------------------------------------------------------------------------
+    // 5. SECTION 2: OTP LOGIN & ATTENDANCE-GATED CERTIFICATE (ROCK-SOLID)
+    // -------------------------------------------------------------------------
+    function renderQuickTestPills() {
+      const container = document.getElementById('quick-test-pills');
+      if (!container) return;
+
+      container.innerHTML = appState.participants.map(p => `
+        <button type="button" onclick="quickStartOtpForMobile('${p.mobile}')"
+          class="w-full px-3 py-2 rounded-xl bg-slate-50 hover:bg-maroon-50 border border-slate-200 hover:border-maroon-200 flex items-center justify-between text-left transition">
+          <div>
+            <div class="text-xs font-bold text-slate-800">${p.mobile} — ${p.name}</div>
+            <div class="text-[10px] text-slate-500">${p.id} • ${p.district}</div>
+          </div>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase ${p.attended
+            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+            : 'bg-amber-100 text-amber-800 border border-amber-300'}">
+            ${p.attended ? 'Attended' : 'Not Attended'}
+          </span>
+        </button>
+      `).join('');
+    }
+
+    function quickStartOtpForMobile(mobile) {
+      document.getElementById('otp-mobile-input').value = mobile;
+      triggerOtpGeneration(mobile);
+    }
+
+    function handleSendOtp(e) {
+      e.preventDefault();
+      const mobile = document.getElementById('otp-mobile-input').value.replace(/[^0-9]/g, '');
+      if (mobile.length !== 10) {
+        showToast('Please enter a valid 10-digit mobile number.', 'red');
+        return;
+      }
+      triggerOtpGeneration(mobile);
+    }
+
+    function triggerOtpGeneration(mobile) {
+      const participant = appState.participants.find(p => p.mobile === mobile);
+      if (!participant) {
+        showToast('Mobile number not registered. Please register in Tab 1 first!', 'red');
+        return;
+      }
+
+      otpTargetMobile = mobile;
+      activeDemoOtp = String(Math.floor(100000 + Math.random() * 900000));
+
+      document.getElementById('otp-display-phone').textContent = `+91 ${mobile}`;
+      document.getElementById('otp-demo-code').textContent = activeDemoOtp;
+
+      // Clear all 6 boxes
+      const boxes = getOtpBoxes();
+      boxes.forEach(b => b.value = '');
+
+      document.getElementById('otp-step-mobile').classList.add('hidden');
+      document.getElementById('otp-step-verify').classList.remove('hidden');
+
+      setTimeout(() => boxes[0]?.focus(), 50);
+      showToast(`Demo OTP ${activeDemoOtp} generated for +91 ${mobile}`, 'maroon');
+    }
+
+    function getOtpBoxes() {
+      return Array.from(document.querySelectorAll('#otp-boxes-container .otp-box'));
+    }
+
+    function setupOtpBoxListeners() {
+      const boxes = getOtpBoxes();
+      boxes.forEach((box, idx) => {
+        box.addEventListener('input', (e) => {
+          const clean = e.target.value.replace(/[^0-9]/g, '');
+          e.target.value = clean.slice(-1);
+          if (e.target.value && idx < boxes.length - 1) {
+            boxes[idx + 1].focus();
+          }
+          // Auto-submit if all 6 digits filled
+          const fullCode = boxes.map(b => b.value).join('');
+          if (fullCode.length === 6) {
+            verifyOtpCode(fullCode);
+          }
+        });
+
+        box.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !box.value && idx > 0) {
+            boxes[idx - 1].focus();
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            const fullCode = boxes.map(b => b.value).join('');
+            verifyOtpCode(fullCode);
+          }
+        });
+
+        box.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '').slice(0, 6);
+          if (!pasted) return;
+          pasted.split('').forEach((digit, i) => {
+            if (boxes[i]) boxes[i].value = digit;
+          });
+          if (pasted.length === 6) {
+            verifyOtpCode(pasted);
+          } else if (boxes[pasted.length]) {
+            boxes[pasted.length].focus();
+          }
+        });
+      });
+    }
+
+    function autoFillOtpBoxes() {
+      if (!activeDemoOtp) return;
+      const boxes = getOtpBoxes();
+      activeDemoOtp.split('').forEach((ch, idx) => {
+        if (boxes[idx]) boxes[idx].value = ch;
+      });
+      verifyOtpCode(activeDemoOtp);
+    }
+
+    function handleVerifyOtpSubmit(e) {
+      e.preventDefault();
+      const code = getOtpBoxes().map(b => b.value).join('');
+      verifyOtpCode(code);
+    }
+
+    function verifyOtpCode(code) {
+      if (code.length !== 6) {
+        showToast('Please enter all 6 digits of the OTP.', 'red');
+        return;
+      }
+      if (code !== activeDemoOtp) {
+        showToast('Incorrect OTP. Click "Auto-Fill OTP & Verify" or check the code above.', 'red');
+        return;
+      }
+
+      const participant = appState.participants.find(p => p.mobile === otpTargetMobile);
+      if (!participant) {
+        showToast('Participant record not found.', 'red');
+        return;
+      }
+
+      loggedInParticipantId = participant.id;
+      document.getElementById('otp-auth-card').classList.add('hidden');
+      document.getElementById('participant-dashboard').classList.remove('hidden');
+      renderParticipantDashboard();
+      showToast(`Welcome, ${participant.name}!`, 'emerald');
+    }
+
+    function backToMobileStep() {
+      document.getElementById('otp-step-verify').classList.add('hidden');
+      document.getElementById('otp-step-mobile').classList.remove('hidden');
+      renderQuickTestPills();
+    }
+
+    function resendDemoOtp() {
+      if (!otpTargetMobile) return;
+      triggerOtpGeneration(otpTargetMobile);
+    }
+
+    function logoutParticipant() {
+      loggedInParticipantId = null;
+      otpTargetMobile = null;
+      activeDemoOtp = null;
+      document.getElementById('participant-dashboard').classList.add('hidden');
+      document.getElementById('otp-step-verify').classList.add('hidden');
+      document.getElementById('otp-step-mobile').classList.remove('hidden');
+      document.getElementById('otp-auth-card').classList.remove('hidden');
+      renderQuickTestPills();
+    }
+
+    function renderParticipantDashboard() {
+      const participant = appState.participants.find(p => p.id === loggedInParticipantId);
+      if (!participant) {
+        logoutParticipant();
+        return;
+      }
+
+      document.getElementById('dash-initial').textContent = participant.name.charAt(0).toUpperCase();
+      document.getElementById('dash-name').textContent = participant.name;
+      document.getElementById('dash-id').textContent = participant.id;
+      document.getElementById('dash-submeta').textContent = `+91 ${participant.mobile} • ${participant.district} • ${participant.category}`;
+
+      const statusPill = document.getElementById('dash-status-pill');
+      const enabledBtns = document.getElementById('cert-enabled-btns');
+      const disabledBtns = document.getElementById('cert-disabled-btns');
+      const lockedBox = document.getElementById('cert-locked-box');
+      const certWrapper = document.getElementById('printable-cert-wrapper');
+      const certDesc = document.getElementById('cert-panel-desc');
+      const qrCaption = document.getElementById('dash-qr-caption');
+
+      // Render Entry QR Pass
+      document.getElementById('dash-qr-regid').textContent = participant.id;
+      new QRious({
+        element: document.getElementById('dash-entry-qr'),
+        value: participant.id,
+        size: 150,
+        foreground: '#540F13',
+        background: '#FFFFFF',
+        level: 'H'
+      });
+
+      if (participant.attended) {
+        // ATTENDED: Unlock Certificate
+        statusPill.className = 'inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300';
+        statusPill.textContent = `ATTENDED • Checked-In at ${participant.checkInTime || 'Venue Gate'}`;
+
+        certDesc.textContent = 'Walkathon attendance verified — download or print your certificate below';
+        qrCaption.textContent = `Verified at Gate (${participant.checkInTime || 'Present'})`;
+
+        enabledBtns.classList.remove('hidden');
+        disabledBtns.classList.add('hidden');
+        lockedBox.classList.add('hidden');
+        certWrapper.classList.remove('hidden');
+
+        // Render high-res personalized certificate on canvas
+        const canvas = document.getElementById('participant-cert-canvas');
+        drawCertificateCanvas(canvas, participant);
+      } else {
+        // NOT ATTENDED: Lock Certificate & Clear Canvas
+        statusPill.className = 'inline-flex items-center gap-1 px-3 py-0.5 rounded-full text-xs font-extrabold bg-amber-100 text-amber-900 border border-amber-300';
+        statusPill.textContent = 'NOT ATTENDED - PENDING GATE CHECK-IN';
+
+        certDesc.textContent = 'Certificate is locked until you complete Gate Check-In (QR-2)';
+        qrCaption.textContent = 'Present at Gate Check-In (QR-2) to Unlock';
+
+        enabledBtns.classList.add('hidden');
+        disabledBtns.classList.remove('hidden');
+        certWrapper.classList.add('hidden');
+        lockedBox.classList.remove('hidden');
+
+        // Clear canvas buffer so locked certificate cannot be scraped
+        const canvas = document.getElementById('participant-cert-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function goToCheckinWithPrefill() {
+      const participant = appState.participants.find(p => p.id === loggedInParticipantId);
+      switchTab('checkin');
+      if (participant) {
+        const searchInput = document.getElementById('gate-search-input');
+        searchInput.value = participant.id;
+        renderGateInstantMatches(participant.id);
+      }
+    }
+
+    function downloadParticipantCertificatePng() {
+      const participant = appState.participants.find(p => p.id === loggedInParticipantId);
+      if (!participant || !participant.attended) {
+        showToast('Certificate is locked until Gate Check-In!', 'red');
+        return;
+      }
+      const canvas = document.getElementById('participant-cert-canvas');
+      const link = document.createElement('a');
+      const cleanName = participant.name.replace(/[^a-zA-Z0-9]/g, '_');
+      link.download = `SanmargOdisha_Certificate_${cleanName}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast('Certificate PNG downloaded!', 'emerald');
+    }
+
+    function printParticipantCertificate() {
+      const participant = appState.participants.find(p => p.id === loggedInParticipantId);
+      if (!participant || !participant.attended) {
+        showToast('Certificate is locked until Gate Check-In!', 'red');
+        return;
+      }
+      window.print();
+    }
+
+    function downloadDashEntryQr() {
+      const participant = appState.participants.find(p => p.id === loggedInParticipantId);
+      if (!participant) return;
+      const canvas = document.getElementById('dash-entry-qr');
+      const link = document.createElement('a');
+      link.download = `${participant.id}-WalkathonPass.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    }
+
+    // -------------------------------------------------------------------------
+    // 6. CERTIFICATE CANVAS RENDERER (CUSTOM IMAGE + CRISP BUILT-IN DESIGN)
+    // -------------------------------------------------------------------------
+    function drawCertificateCanvas(canvas, participant) {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+      const style = appState.certStyle;
+
+      ctx.clearRect(0, 0, W, H);
+
+      if (loadedCustomBgImage) {
+        ctx.drawImage(loadedCustomBgImage, 0, 0, W, H);
+      } else {
+        // Warm Ivory/Cream Background
+        const grad = ctx.createLinearGradient(0, 0, W, H);
+        grad.addColorStop(0, '#FFFDF8');
+        grad.addColorStop(0.5, '#FDF7EA');
+        grad.addColorStop(1, '#F9EED7');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, W, H);
+
+        // Outer Maroon Frame
+        ctx.strokeStyle = '#8B1E24';
+        ctx.lineWidth = 20;
+        ctx.strokeRect(28, 28, W - 56, H - 56);
+
+        // Inner Gold Double Frame
+        ctx.strokeStyle = '#D99B26';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(50, 50, W - 100, H - 100);
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(58, 58, W - 116, H - 116);
+
+        // Corner Medallions
+        [[50, 50], [W - 50, 50], [50, H - 50], [W - 50, H - 50]].forEach(([cx, cy]) => {
+          ctx.fillStyle = '#8B1E24';
+          ctx.beginPath();
+          ctx.arc(cx, cy, 13, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.fillStyle = '#D99B26';
+          ctx.beginPath();
+          ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        // Header Crest
+        ctx.fillStyle = '#8B1E24';
+        ctx.beginPath();
+        ctx.arc(W / 2, 128, 42, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#D99B26';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.fillStyle = '#E8B346';
+        ctx.font = 'bold 42px "Playfair Display", Georgia, serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('S', W / 2, 130);
+
+        // Official Header
+        ctx.fillStyle = '#8B1E24';
+        ctx.font = 'bold 34px "Playfair Display", Georgia, serif';
+        ctx.fillText('SANMARG ODISHA', W / 2, 198);
+
+        ctx.fillStyle = '#64748B';
+        ctx.font = 'bold 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('SANMARGODISHA.IN  •  OFFICIAL WALKATHON EVENT', W / 2, 226);
+
+        // Title
+        ctx.fillStyle = '#1E293B';
+        ctx.font = 'bold 52px "Playfair Display", Georgia, serif';
+        ctx.fillText('Certificate of Participation', W / 2, 296);
+
+        // Gold Rule
+        ctx.strokeStyle = '#D99B26';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(W / 2 - 190, 326);
+        ctx.lineTo(W / 2 + 190, 326);
+        ctx.stroke();
+
+        // Presented To
+        ctx.fillStyle = '#475569';
+        ctx.font = 'italic 22px "Playfair Display", Georgia, serif';
+        ctx.fillText('This certificate is proudly awarded to', W / 2, 372);
+
+        // Name Underline
+        const nameY = (style.yPercent / 100) * H;
+        ctx.strokeStyle = '#CBD5E1';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(W / 2 - 340, nameY + 34);
+        ctx.lineTo(W / 2 + 340, nameY + 34);
+        ctx.stroke();
+
+        // Event Citation
+        ctx.fillStyle = '#334155';
+        ctx.font = '500 20px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText(`for active participation in the ${participant.category} (${participant.district}) at`, W / 2, 520);
+
+        ctx.fillStyle = '#8B1E24';
+        ctx.font = 'bold 23px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Sanmarg Odisha Walkathon 2026', W / 2, 554);
+
+        // Bottom Signatures & Official Seal
+        ctx.strokeStyle = '#94A3B8';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(185, 705);
+        ctx.lineTo(405, 705);
+        ctx.stroke();
+        ctx.fillStyle = '#1E293B';
+        ctx.font = 'bold 17px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Editor-in-Chief', 295, 730);
+        ctx.fillStyle = '#64748B';
+        ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Sanmarg Odisha', 295, 752);
+
+        // Center Seal with Reg ID
+        ctx.fillStyle = '#D99B26';
+        ctx.beginPath();
+        ctx.arc(W / 2, 712, 46, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#8B1E24';
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = '#540F13';
+        ctx.font = 'bold 11px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('VERIFIED FINISHER', W / 2, 704);
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText(participant.id, W / 2, 724);
+
+        // Right Signature
+        ctx.strokeStyle = '#94A3B8';
+        ctx.beginPath();
+        ctx.moveTo(W - 405, 705);
+        ctx.lineTo(W - 185, 705);
+        ctx.stroke();
+        ctx.fillStyle = '#1E293B';
+        ctx.font = 'bold 17px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Event Convener', W - 295, 730);
+        ctx.fillStyle = '#64748B';
+        ctx.font = '500 14px "Plus Jakarta Sans", sans-serif';
+        ctx.fillText('Odisha Walkathon 2026', W - 295, 752);
+      }
+
+      // Draw Participant Name using Admin Studio Settings
+      const fontMap = {
+        serif: `"Playfair Display", Georgia, serif`,
+        sans: `"Plus Jakarta Sans", Arial, sans-serif`,
+        cursive: `"Great Vibes", cursive`
+      };
+      const chosenFont = fontMap[style.fontFamily] || fontMap.serif;
+      const posX = (style.xPercent / 100) * W;
+      const posY = (style.yPercent / 100) * H;
+
+      ctx.save();
+      ctx.fillStyle = style.color;
+      ctx.font = `bold ${style.fontSize}px ${chosenFont}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(participant.name, posX, posY);
+      ctx.restore();
+    }
+
+    // -------------------------------------------------------------------------
+    // 7. SECTION 3: GATE CHECK-IN (QR-2) — 3 SEAMLESS METHODS
+    // -------------------------------------------------------------------------
+    function parseQrOrQueryInput(raw) {
+      if (!raw) return '';
+      let val = raw.trim();
+
+      // Case 1: URL with ?id=SMO-2026-1001
+      if (val.includes('?') && val.includes('id=')) {
+        try {
+          const urlObj = new URL(val.startsWith('http') ? val : `https://sanmargodisha.in/${val}`);
+          const idParam = urlObj.searchParams.get('id');
+          if (idParam) return idParam.trim();
+        } catch (e) { /* ignore URL parse error */ }
+      }
+
+      // Case 2: JSON payload {"id":"SMO-2026-1001"}
+      if (val.startsWith('{') && val.endsWith('}')) {
+        try {
+          const obj = JSON.parse(val);
+          if (obj.id) return String(obj.id).trim();
+          if (obj.mobile) return String(obj.mobile).trim();
+        } catch (e) { /* ignore JSON parse error */ }
+      }
+
+      // Case 3: Pipe-separated string SANMARG_ODISHA|SMO-2026-1001|9861011111
+      if (val.includes('|')) {
+        const parts = val.split('|');
+        if (parts[1]) return parts[1].trim();
+      }
+
+      // Case 4: Shorthand numeric ID like "1003" -> "SMO-2026-1003"
+      if (/^\d{4}$/.test(val)) {
+        return `SMO-2026-${val}`;
+      }
+
+      return val;
+    }
+
+    function findParticipantByQuery(rawQuery) {
+      const cleaned = parseQrOrQueryInput(rawQuery);
+      if (!cleaned) return null;
+      const upper = cleaned.toUpperCase();
+
+      return appState.participants.find(p =>
+        p.id.toUpperCase() === upper ||
+        p.mobile === cleaned ||
+        p.name.toLowerCase() === cleaned.toLowerCase()
+      ) || null;
+    }
+
+    function handleGateSearchSubmit(e) {
+      e.preventDefault();
+      const raw = document.getElementById('gate-search-input').value;
+      if (!raw.trim()) return;
+      executeGateCheckIn(raw);
+    }
+
+    function renderGateInstantMatches(queryStr) {
+      const container = document.getElementById('gate-instant-matches');
+      if (!container) return;
+
+      const q = parseQrOrQueryInput(queryStr).toLowerCase();
+      if (!q) {
+        container.innerHTML = '';
+        return;
+      }
+
+      const matches = appState.participants.filter(p =>
+        p.id.toLowerCase().includes(q) ||
+        p.mobile.includes(q) ||
+        p.name.toLowerCase().includes(q)
+      ).slice(0, 5);
+
+      if (matches.length === 0) {
+        container.innerHTML = `<div class="p-3 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 font-semibold">No participant matching "${queryStr}" found.</div>`;
+        return;
+      }
+
+      container.innerHTML = matches.map(p => `
+        <div class="p-3 rounded-xl border ${p.attended ? 'bg-emerald-50/60 border-emerald-200' : 'bg-slate-50 border-slate-200'} flex items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs font-extrabold text-maroon-800">${p.id}</span>
+              <span class="font-bold text-sm text-slate-900">${p.name}</span>
+            </div>
+            <div class="text-[11px] text-slate-500">+91 ${p.mobile} • ${p.district} • ${p.category}</div>
+          </div>
+          ${p.attended
+            ? `<span class="px-3 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-extrabold whitespace-nowrap">✓ Attended (${p.checkInTime})</span>`
+            : `<button type="button" onclick="executeGateCheckIn('${p.id}')"
+                class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow whitespace-nowrap transition">
+                Verify &amp; Mark Attended
+              </button>`
+          }
+        </div>
+      `).join('');
+    }
+
+    function executeGateCheckIn(rawInput) {
+      const participant = findParticipantByQuery(rawInput);
+
+      document.getElementById('gate-result-empty').classList.add('hidden');
+      const card = document.getElementById('gate-result-card');
+      const icon = document.getElementById('gate-res-icon');
+      const badge = document.getElementById('gate-res-badge');
+      const title = document.getElementById('gate-res-title');
+      const body = document.getElementById('gate-res-body');
+      const footer = document.getElementById('gate-res-footer');
+
+      card.classList.remove('hidden', 'border-emerald-500', 'bg-emerald-50', 'border-amber-500', 'bg-amber-50', 'border-red-500', 'bg-red-50');
+
+      if (!participant) {
+        // NOT FOUND
+        card.classList.add('border-red-500', 'bg-red-50');
+        icon.className = 'w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shrink-0 font-bold text-xl';
+        icon.textContent = '✕';
+        badge.className = 'inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1 bg-red-200 text-red-900';
+        badge.textContent = 'NOT REGISTERED';
+        title.className = 'font-serif-display text-xl font-bold text-red-950';
+        title.textContent = 'Participant Not Found';
+        body.innerHTML = `<div class="text-red-800 font-semibold">Input: <span class="font-mono">${rawInput}</span></div>
+          <div class="text-slate-600">No matching registration exists in the Sanmarg Odisha Walkathon database.</div>`;
+        footer.className = 'mt-3 text-xs font-bold text-red-800';
+        footer.textContent = 'Direct guest to Section 1 (Register QR-1) first.';
+        showToast('Participant not found in database.', 'red');
+        return;
+      }
+
+      if (participant.attended) {
+        // ALREADY CHECKED IN
+        card.classList.add('border-amber-500', 'bg-amber-50');
+        icon.className = 'w-12 h-12 rounded-full bg-amber-500 text-white flex items-center justify-center shrink-0 font-bold text-xl';
+        icon.textContent = '!';
+        badge.className = 'inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1 bg-amber-200 text-amber-950';
+        badge.textContent = 'ALREADY VERIFIED';
+        title.className = 'font-serif-display text-xl font-bold text-amber-950';
+        title.textContent = participant.name;
+        body.innerHTML = `
+          <div class="flex justify-between"><span class="text-slate-500">Registration ID:</span><span class="font-mono font-bold">${participant.id}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Mobile / District:</span><span class="font-semibold">+91 ${participant.mobile} • ${participant.district}</span></div>
+          <div class="flex justify-between"><span class="text-slate-500">Checked-In At:</span><span class="font-bold text-amber-800">${participant.checkInTime}</span></div>
+        `;
+        footer.className = 'mt-3 text-xs font-bold text-amber-900';
+        footer.textContent = '✓ Certificate is already unlocked for this participant.';
+        showToast(`${participant.name} was already checked in.`, 'amber');
+        return;
+      }
+
+      // MARK AS ATTENDED NOW
+      participant.attended = true;
+      participant.checkInTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      saveAppState();
+
+      card.classList.add('border-emerald-500', 'bg-emerald-50');
+      icon.className = 'w-12 h-12 rounded-full bg-emerald-600 text-white flex items-center justify-center shrink-0 font-bold text-xl';
+      icon.textContent = '✓';
+      badge.className = 'inline-block text-[10px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full mb-1 bg-emerald-200 text-emerald-950';
+      badge.textContent = 'ATTENDANCE VERIFIED • CERTIFICATE UNLOCKED';
+      title.className = 'font-serif-display text-xl font-bold text-emerald-950';
+      title.textContent = participant.name;
+      body.innerHTML = `
+        <div class="flex justify-between"><span class="text-slate-500">Registration ID:</span><span class="font-mono font-bold text-slate-900">${participant.id}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Mobile / District:</span><span class="font-semibold text-slate-900">+91 ${participant.mobile} • ${participant.district}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Category:</span><span class="font-semibold text-slate-900">${participant.category}</span></div>
+        <div class="flex justify-between"><span class="text-slate-500">Check-In Time:</span><span class="font-bold text-emerald-700">${participant.checkInTime}</span></div>
+      `;
+      footer.className = 'mt-3 text-xs font-extrabold text-emerald-800';
+      footer.textContent = '🎓 Certificate Unlocked! Participant can now download it in Section 2.';
+
+      // Refresh Gate Views
+      renderPendingWalkersQueue();
+      renderRecentCheckinsFeed();
+      const searchVal = document.getElementById('gate-search-input').value;
+      if (searchVal) renderGateInstantMatches(searchVal);
+
+      showToast(`Checked In: ${participant.name} (${participant.id}) — Certificate Unlocked!`, 'emerald');
+    }
+
+    function renderPendingWalkersQueue() {
+      const list = document.getElementById('pending-walkers-list');
+      const countBadge = document.getElementById('pending-queue-count');
+      if (!list || !countBadge) return;
+
+      const pending = appState.participants.filter(p => !p.attended);
+      countBadge.textContent = `${pending.length} Pending`;
+
+      if (pending.length === 0) {
+        list.innerHTML = `<div class="py-6 text-center text-xs font-semibold text-emerald-700">🎉 All registered participants have been checked in!</div>`;
+        return;
+      }
+
+      list.innerHTML = pending.map(p => `
+        <div class="py-3 flex items-center justify-between gap-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-xs font-extrabold text-maroon-800">${p.id}</span>
+              <span class="font-bold text-sm text-slate-900">${p.name}</span>
+            </div>
+            <div class="text-[11px] text-slate-500">+91 ${p.mobile} • ${p.district} • ${p.category}</div>
+          </div>
+          <button type="button" onclick="executeGateCheckIn('${p.id}')"
+            class="px-3.5 py-2 rounded-xl bg-maroon-700 hover:bg-maroon-800 text-white text-xs font-bold shadow-sm whitespace-nowrap transition">
+            Check In Now
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function renderRecentCheckinsFeed() {
+      const feed = document.getElementById('recent-checkins-feed');
+      const badge = document.getElementById('gate-checkedin-count');
+      if (!feed || !badge) return;
+
+      const verified = appState.participants.filter(p => p.attended);
+      badge.textContent = `${verified.length} Verified`;
+
+      if (verified.length === 0) {
+        feed.innerHTML = `<div class="py-6 text-center text-xs text-slate-400">No gate check-ins recorded yet.</div>`;
+        return;
+      }
+
+      feed.innerHTML = verified.map(p => `
+        <div class="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 flex items-center justify-between gap-2">
+          <div>
+            <div class="text-xs font-bold text-slate-900">${p.name}</div>
+            <div class="text-[11px] font-mono text-emerald-800 font-semibold">${p.id} • +91 ${p.mobile}</div>
+          </div>
+          <div class="text-right">
+            <span class="inline-block px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 text-[10px] font-extrabold">VERIFIED</span>
+            <div class="text-[10px] text-slate-500 mt-0.5">${p.checkInTime || 'Checked In'}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Live Camera QR Scanner (Html5Qrcode with graceful error handling)
+    async function startGateCameraScanner() {
+      const statusBanner = document.getElementById('camera-status-banner');
+      const startBtn = document.getElementById('btn-start-camera');
+      const stopBtn = document.getElementById('btn-stop-camera');
+
+      if (typeof Html5Qrcode === 'undefined') {
+        statusBanner.innerHTML = `<span class="text-amber-300 font-semibold">Camera QR library unavailable offline. Use Instant Lookup or 1-Click Pending Queue above.</span>`;
+        return;
+      }
+
+      try {
+        statusBanner.textContent = 'Requesting camera permission...';
+        html5QrScanner = new Html5Qrcode('qr-reader');
+        await html5QrScanner.start(
+          { facingMode: 'environment' },
+          { fps: 10, qrbox: { width: 220, height: 220 } },
+          (decodedText) => {
+            const now = Date.now();
+            if (decodedText === lastScannedCode && now - lastScanTimestamp < 3000) return;
+            lastScannedCode = decodedText;
+            lastScanTimestamp = now;
+            executeGateCheckIn(decodedText);
+          },
+          () => { /* ignore per-frame scan misses */ }
+        );
+
+        isCameraRunning = true;
+        startBtn.classList.add('hidden');
+        stopBtn.classList.remove('hidden');
+        statusBanner.innerHTML = `<span class="text-emerald-300 font-semibold">Camera active — hold participant's Entry QR Pass inside the frame.</span>`;
+      } catch (err) {
+        isCameraRunning = false;
+        statusBanner.innerHTML = `<span class="text-amber-300 font-semibold">Camera access blocked or unavailable in this browser frame. Please use Instant Lookup or 1-Click Pending Queue above.</span>`;
+        showToast('Camera unavailable in preview — use Instant Lookup or 1-Click Check-In.', 'amber');
+      }
+    }
+
+    async function stopGateCameraScanner() {
+      const statusBanner = document.getElementById('camera-status-banner');
+      const startBtn = document.getElementById('btn-start-camera');
+      const stopBtn = document.getElementById('btn-stop-camera');
+
+      if (html5QrScanner && isCameraRunning) {
+        try {
+          await html5QrScanner.stop();
+          await html5QrScanner.clear();
+        } catch (e) { /* ignore stop error */ }
+      }
+      isCameraRunning = false;
+      startBtn.classList.remove('hidden');
+      stopBtn.classList.add('hidden');
+      statusBanner.innerHTML = `Camera stopped. Click <strong>"Start Camera Scanner"</strong> to scan again.`;
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. SECTION 4: ADMIN & ANALYTICS DASHBOARD
+    // -------------------------------------------------------------------------
+    function updateAllCounters() {
+      const total = appState.participants.length;
+      const attended = appState.participants.filter(p => p.attended).length;
+      const pending = total - attended;
+      const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+      // Landing stats
+      const lReg = document.getElementById('landing-stat-reg');
+      const lAtt = document.getElementById('landing-stat-att');
+      const lCert = document.getElementById('landing-stat-cert');
+      if (lReg) lReg.textContent = total;
+      if (lAtt) lAtt.textContent = attended;
+      if (lCert) lCert.textContent = attended;
+
+      // Admin KPIs
+      const aReg = document.getElementById('admin-kpi-reg');
+      const aAtt = document.getElementById('admin-kpi-att');
+      const aRate = document.getElementById('admin-kpi-rate-text');
+      const aPend = document.getElementById('admin-kpi-pend');
+      const aCert = document.getElementById('admin-kpi-cert');
+      const aProgLbl = document.getElementById('admin-progress-label');
+      const aProgBar = document.getElementById('admin-progress-bar');
+
+      if (aReg) aReg.textContent = total;
+      if (aAtt) aAtt.textContent = attended;
+      if (aRate) aRate.textContent = `${rate}% turnout`;
+      if (aPend) aPend.textContent = pending;
+      if (aCert) aCert.textContent = attended;
+      if (aProgLbl) aProgLbl.textContent = `${attended} / ${total} Verified (${rate}%)`;
+      if (aProgBar) aProgBar.style.width = `${rate}%`;
+    }
+
+    function syncCertControlsUI() {
+      const s = appState.certStyle;
+      document.getElementById('ctrl-x').value = s.xPercent;
+      document.getElementById('ctrl-y').value = s.yPercent;
+      document.getElementById('ctrl-size').value = s.fontSize;
+      document.getElementById('ctrl-font').value = s.fontFamily;
+      document.getElementById('ctrl-color').value = s.color;
+
+      document.getElementById('lbl-x').textContent = s.xPercent;
+      document.getElementById('lbl-y').textContent = s.yPercent;
+      document.getElementById('lbl-size').textContent = s.fontSize;
+      document.getElementById('lbl-color').textContent = s.color;
+    }
+
+    function onCertStyleChange() {
+      appState.certStyle.xPercent = Number(document.getElementById('ctrl-x').value);
+      appState.certStyle.yPercent = Number(document.getElementById('ctrl-y').value);
+      appState.certStyle.fontSize = Number(document.getElementById('ctrl-size').value);
+      appState.certStyle.fontFamily = document.getElementById('ctrl-font').value;
+      appState.certStyle.color = document.getElementById('ctrl-color').value;
+
+      syncCertControlsUI();
+      saveAppState();
+      renderAdminCertPreview();
+      if (loggedInParticipantId) renderParticipantDashboard();
+    }
+
+    function handleCustomTemplateUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        const img = new Image();
+        img.onload = () => {
+          loadedCustomBgImage = img;
+          appState.certStyle.customImage = dataUrl;
+          saveAppState();
+          renderAdminCertPreview();
+          if (loggedInParticipantId) renderParticipantDashboard();
+          showToast('Custom certificate design uploaded & applied!', 'emerald');
+        };
+        img.src = dataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function resetCertificateTemplate() {
+      loadedCustomBgImage = null;
+      appState.certStyle = { ...DEFAULT_CERT_STYLE };
+      document.getElementById('admin-cert-file').value = '';
+      saveAppState();
+      syncCertControlsUI();
+      renderAdminCertPreview();
+      if (loggedInParticipantId) renderParticipantDashboard();
+      showToast('Restored default Sanmarg Odisha Walkathon certificate.', 'maroon');
+    }
+
+    function renderAdminCertPreview() {
+      const canvas = document.getElementById('admin-preview-canvas');
+      if (!canvas) return;
+      const sampleName = document.getElementById('admin-sample-name').value.trim() || 'Rajesh Kumar Mohanty';
+      drawCertificateCanvas(canvas, {
+        id: 'SMO-2026-1001',
+        name: sampleName,
+        district: 'Cuttack',
+        category: '5 KM Walkathon Runner'
+      });
+    }
+
+    function renderAdminEventQrs() {
+      const base = 'https://sanmargodisha.in';
+      new QRious({
+        element: document.getElementById('admin-qr1-canvas'),
+        value: `${base}/?tab=register`,
+        size: 110,
+        foreground: '#8B1E24',
+        background: '#FFFFFF',
+        level: 'H'
+      });
+      new QRious({
+        element: document.getElementById('admin-qr2-canvas'),
+        value: `${base}/?tab=checkin`,
+        size: 110,
+        foreground: '#540F13',
+        background: '#FFFFFF',
+        level: 'H'
+      });
+    }
+
+    function downloadAdminQr(canvasId, fileName) {
+      const canvas = document.getElementById(canvasId);
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      showToast(`Downloaded ${fileName}`, 'emerald');
+    }
+
+    function setMasterFilter(filter) {
+      masterTableFilter = filter;
+      ['all', 'attended', 'pending'].forEach(f => {
+        const btn = document.getElementById(`mfilter-${f}`);
+        if (f === filter) {
+          btn.className = 'mfilter-btn px-3 py-1.5 rounded-lg bg-white text-maroon-800 shadow-sm';
+        } else {
+          btn.className = 'mfilter-btn px-3 py-1.5 rounded-lg text-slate-600 hover:text-slate-900';
+        }
+      });
+      renderMasterTable();
+    }
+
+    function renderMasterTable() {
+      const tbody = document.getElementById('master-table-tbody');
+      if (!tbody) return;
+
+      const q = (document.getElementById('admin-table-search')?.value || '').toLowerCase().trim();
+      const rows = appState.participants.filter(p => {
+        if (masterTableFilter === 'attended' && !p.attended) return false;
+        if (masterTableFilter === 'pending' && p.attended) return false;
+        if (q) {
+          const text = `${p.id} ${p.name} ${p.mobile} ${p.district} ${p.category}`.toLowerCase();
+          if (!text.includes(q)) return false;
+        }
+        return true;
+      });
+
+      if (rows.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-xs text-slate-400">No matching participants found.</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = rows.map(p => `
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3.5 px-4 font-mono font-extrabold text-xs text-maroon-800 whitespace-nowrap">${p.id}</td>
+          <td class="py-3.5 px-4">
+            <div class="font-bold text-slate-900">${p.name}</div>
+            <div class="text-[11px] text-slate-400">Reg: ${p.registeredAt}</div>
+          </td>
+          <td class="py-3.5 px-4">
+            <div class="font-semibold text-slate-700">+91 ${p.mobile}</div>
+            <div class="text-[11px] text-slate-500">${p.district}</div>
+          </td>
+          <td class="py-3.5 px-4">
+            <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-semibold text-xs">${p.category}</span>
+          </td>
+          <td class="py-3.5 px-4 whitespace-nowrap">
+            ${p.attended
+              ? `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-extrabold">✓ Attended</span>
+                 <div class="text-[10px] text-slate-400 mt-0.5">${p.checkInTime || ''}</div>`
+              : `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-extrabold">⏳ Pending</span>`
+            }
+          </td>
+          <td class="py-3.5 px-4 whitespace-nowrap">
+            ${p.attended
+              ? `<span class="text-xs font-bold text-emerald-700">Unlocked ✓</span>`
+              : `<span class="text-xs font-semibold text-slate-400">🔒 Locked</span>`
+            }
+          </td>
+          <td class="py-3.5 px-4 text-right whitespace-nowrap">
+            <button type="button" onclick="toggleParticipantAttendance('${p.id}')"
+              class="px-3 py-1.5 rounded-lg text-xs font-bold border transition ${p.attended
+                ? 'border-slate-300 text-slate-600 hover:bg-slate-100'
+                : 'border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800'}">
+              ${p.attended ? 'Undo Check-In' : 'Mark Attended'}
+            </button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function toggleParticipantAttendance(id) {
+      const p = appState.participants.find(item => item.id === id);
+      if (!p) return;
+      p.attended = !p.attended;
+      p.checkInTime = p.attended ? new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : null;
+      saveAppState();
+      renderMasterTable();
+      if (loggedInParticipantId === p.id) renderParticipantDashboard();
+      showToast(`${p.name} marked as ${p.attended ? 'Attended (Certificate Unlocked)' : 'Pending (Certificate Locked)'}.`, p.attended ? 'emerald' : 'amber');
+    }
+
+    function exportAttendeesCsv() {
+      const headers = ['Registration ID', 'Full Name', 'Mobile', 'District', 'Category', 'Email', 'Registered At', 'Attended', 'Check-In Time', 'Certificate Status'];
+      const rows = appState.participants.map(p => [
+        p.id,
+        `"${p.name.replace(/"/g, '""')}"`,
+        p.mobile,
+        `"${p.district}"`,
+        `"${p.category}"`,
+        p.email || '',
+        `"${p.registeredAt}"`,
+        p.attended ? 'YES' : 'NO',
+        p.checkInTime ? `"${p.checkInTime}"` : '',
+        p.attended ? 'UNLOCKED' : 'LOCKED'
+      ]);
+
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SanmargOdisha_Walkathon_Report_${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('CSV Report exported!', 'emerald');
+    }
+
+    function resetSeedData() {
+      appState.participants = JSON.parse(JSON.stringify(SEED_PARTICIPANTS));
+      saveAppState();
+      renderMasterTable();
+      renderPendingWalkersQueue();
+      renderRecentCheckinsFeed();
+      renderQuickTestPills();
+      if (loggedInParticipantId) renderParticipantDashboard();
+      showToast('Demo data reset to initial 4 Walkathon accounts.', 'maroon');
+    }
+
+    // -------------------------------------------------------------------------
+    // 9. INITIALIZATION ON DOM LOAD
+    // -------------------------------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      loadAppState();
+      setupOtpBoxListeners();
+      updateAllCounters();
+
+      // URL Query Parameter Support: ?tab=register | ?tab=certificate | ?tab=checkin | ?tab=admin
+      const params = new URLSearchParams(window.location.search);
+      const requestedTab = params.get('tab');
+      const validTabs = ['register', 'certificate', 'checkin', 'admin'];
+      if (requestedTab && validTabs.includes(requestedTab)) {
+        switchTab(requestedTab);
+      } else {
+        switchTab('register');
+      }
+
+      if (window.lucide) lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
