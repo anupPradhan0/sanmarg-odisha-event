@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #faf8f5;
+  --color-maroon-50: #fdf2f2;
+  --color-maroon-100: #fce4e5;
+  --color-maroon-600: #a5242b;
+  --color-maroon-700: #8b1e24;
+  --color-maroon-800: #70161b;
+  --color-gold-100: #fdf4dc;
+  --color-gold-400: #e8b346;
+  --font-sans: var(--font-jakarta), var(--font-odia), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-playfair), var(--font-odia), ui-serif, Georgia, serif;
+}
+
+/* Larger base size: many users read on small, low-end phones. */
+html {
+  font-size: 17px;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-slate-800);
+}
