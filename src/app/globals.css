@@ -1,24 +1,80 @@
 @import "tailwindcss";
 
 @theme {
-  --color-paper: #faf8f5;
-  --color-maroon-50: #fdf2f2;
-  --color-maroon-100: #fce4e5;
-  --color-maroon-600: #a5242b;
+  --color-paper: #f4efe6;
+  --color-paper-2: #ebe4d6;
+  --color-ink: #171411;
+  --color-ink-2: #4a443d;
+  --color-ink-3: #8a8277;
+  --color-rule: #d8cfbf;
+  --color-maroon-50: #fbf1ef;
+  --color-maroon-100: #f6dfdb;
+  --color-maroon-600: #a8242b;
   --color-maroon-700: #8b1e24;
   --color-maroon-800: #70161b;
-  --color-gold-100: #fdf4dc;
+  --color-maroon-900: #540f13;
+  --color-gold-100: #fbf0d6;
+  --color-gold-300: #f3cf7a;
   --color-gold-400: #e8b346;
-  --font-sans: var(--font-jakarta), var(--font-odia), ui-sans-serif, system-ui, sans-serif;
-  --font-serif: var(--font-playfair), var(--font-odia), ui-serif, Georgia, serif;
+
+  --font-sans: var(--font-geist), var(--font-odia), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-display), var(--font-odia), ui-serif, Georgia, serif;
+
+  --animate-rise: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-line: line 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-marquee: marquee 28s linear infinite;
+  --animate-blink: blink 1.6s ease-in-out infinite;
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+  /* Headline lines slide up from behind a mask. */
+  @keyframes line {
+    from { transform: translateY(105%); }
+    to { transform: none; }
+  }
+  @keyframes marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
 }
 
-/* Larger base size: many users read on small, low-end phones. */
 html {
   font-size: 17px;
 }
 
 body {
   background: var(--color-paper);
-  color: var(--color-slate-800);
+  color: var(--color-ink);
+  font-feature-settings: "ss01", "cv11";
+}
+
+/* Letter-spacing breaks Odia conjuncts, so Odia text is never tracked. */
+:lang(or) [class*="tracking-"] {
+  letter-spacing: normal;
+}
+
+::selection {
+  background: var(--color-maroon-700);
+  color: white;
+}
+
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
 }

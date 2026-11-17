@@ -1,18 +1,35 @@
+import { BookOpen, GraduationCap, Star, User } from "lucide-react";
+
 // Assumption: event date/venue until confirmed by Sanmarg Odisha.
 export const EVENT = {
   name: "Sanmarg Odisha Walkathon 2026",
   nameOd: "ସନ୍ମାର୍ଗ ଓଡ଼ିଶା ପଦଯାତ୍ରା ୨୦୨୬",
   date: "1 December 2026",
   dateOd: "୧ ଡିସେମ୍ବର ୨୦୨୬",
+  startsAt: "2026-12-01T07:00:00+05:30",
   place: "Bhubaneswar & Cuttack",
   placeOd: "ଭୁବନେଶ୍ୱର ଓ କଟକ",
 };
 
 export const CATEGORIES = [
-  { value: "Student", od: "ଛାତ୍ର / ଛାତ୍ରୀ", icon: "🎓" },
-  { value: "Teacher", od: "ଶିକ୍ଷକ / ଶିକ୍ଷୟିତ୍ରୀ", icon: "📚" },
-  { value: "General / Guest", od: "ସାଧାରଣ ନାଗରିକ", icon: "🙋" },
-  { value: "VIP / Special Guest", od: "ବିଶିଷ୍ଟ ଅତିଥି", icon: "⭐" },
+  { value: "Student", od: "ଛାତ୍ର / ଛାତ୍ରୀ", icon: GraduationCap },
+  { value: "Teacher", od: "ଶିକ୍ଷକ / ଶିକ୍ଷୟିତ୍ରୀ", icon: BookOpen },
+  { value: "General / Guest", od: "ସାଧାରଣ ନାଗରିକ", icon: User },
+  { value: "VIP / Special Guest", od: "ବିଶିଷ୍ଟ ଅତିଥି", icon: Star },
+];
+
+export const GENDERS = [
+  { value: "Male", od: "ପୁରୁଷ" },
+  { value: "Female", od: "ମହିଳା" },
+  { value: "Other", od: "ଅନ୍ୟ" },
+];
+
+export const AGE_GROUPS = [
+  { value: "Under 18", od: "୧୮ ରୁ କମ୍" },
+  { value: "18-25", od: "୧୮ – ୨୫" },
+  { value: "26-35", od: "୨୬ – ୩୫" },
+  { value: "36-45", od: "୩୬ – ୪୫" },
+  { value: "Above 45", od: "୪୫ ରୁ ଅଧିକ" },
 ];
 
 // Bhubaneswar and Cuttack first (most walkers), the rest alphabetical.

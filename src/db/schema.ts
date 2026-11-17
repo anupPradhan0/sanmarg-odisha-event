@@ -7,6 +7,8 @@ export const registrations = pgTable(
     email: text("email").notNull().unique(),
     name: text("name").notNull(),
     mobile: varchar("mobile", { length: 10 }).notNull(),
+    gender: text("gender").notNull(),
+    ageGroup: text("age_group").notNull(),
     district: text("district").notNull(),
     category: text("category").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

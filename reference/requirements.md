@@ -21,7 +21,7 @@ Expected load: 1–2 lakh registrations; spike of certificate downloads after th
 ## Scope
 - **In:**
   - Landing page on `sanmargodisha.in` (short "about Sanmarg Odisha" + Register CTA + "Download your certificate" banner).
-  - Registration: sign in with Google, then name, mobile, district, category. Shows a confirmation with Reg ID and a QR pass.
+  - Registration: sign in with Google, then name, mobile, gender, age group, district, category. Shows a confirmation with Reg ID and a QR pass.
   - Gate check-in page for volunteers: search by mobile, name or Reg ID, then mark attended in one tap.
   - Participant certificate page: sign in with Google, see status (locked / unlocked), download certificate PDF when unlocked.
   - Admin panel: registry table with search/filter, counts (registered, attended, pending), CSV export, create/disable volunteer accounts, "unlock certificates for everyone" switch.
