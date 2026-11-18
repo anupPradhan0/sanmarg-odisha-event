@@ -11,10 +11,12 @@ import { requireStaff } from "@/lib/staff-auth";
 import { logout } from "../staff/actions";
 import { adminCheckIn, setStaffActive } from "./actions";
 import { CreateStaffForm } from "./staff-form";
+import { Pager } from "../pager";
 
 export const metadata = { title: "Admin · Sanmarg Odisha" };
 
 const PAGE_SIZE = 50;
+const STAFF_PAGE_SIZE = 20;
 const STATUSES = { all: "All", arrived: "Arrived", pending: "Not yet" } as const;
 type Status = keyof typeof STATUSES;
 
@@ -63,19 +65,25 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/admin">["
   const q = (typeof sp.q === "string" ? sp.q : "").trim().slice(0, 80);
   const status: Status = sp.status === "arrived" || sp.status === "pending" ? sp.status : "all";
   const page = Math.max(1, Number(sp.page) || 1);
+  const staffPage = Math.max(1, Number(sp.spage) || 1);
+  const filter = registryFilter(q, status);
 
-  const [[totals], byDistrict, byCategory, byGender, byAge, team, rows] = await Promise.all([
+  const [[totals], byDistrict, byCategory, byGender, byAge, [staffCount], team, [matching], rows] = await Promise.all([
     db.select({ total: count(), arrived: count(registrations.attendedAt) }).from(registrations),
     breakdown(registrations.district),
     breakdown(registrations.category),
     breakdown(registrations.gender),
     breakdown(registrations.ageGroup),
+    db.select({ n: count() }).from(staff),
     db
       .select({ id: staff.id, name: staff.name, username: staff.username, role: staff.role, active: staff.active, checkIns: count(registrations.id) })
       .from(staff)
       .leftJoin(registrations, eq(registrations.attendedBy, staff.id))
       .groupBy(staff.id)
-      .orderBy(staff.role, staff.createdAt),
+      .orderBy(staff.role, staff.createdAt, staff.id)
+      .limit(STAFF_PAGE_SIZE)
+      .offset((staffPage - 1) * STAFF_PAGE_SIZE),
+    db.select({ n: count() }).from(registrations).where(filter),
     db
       .select({
         id: registrations.id,
@@ -91,21 +99,24 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/admin">["
       })
       .from(registrations)
       .leftJoin(staff, eq(staff.id, registrations.attendedBy))
-      .where(registryFilter(q, status))
+      .where(filter)
       .orderBy(desc(registrations.id))
-      .limit(PAGE_SIZE + 1)
+      .limit(PAGE_SIZE)
       .offset((page - 1) * PAGE_SIZE),
   ]);
 
   const pending = totals.total - totals.arrived;
   const turnout = totals.total ? Math.round((totals.arrived / totals.total) * 100) : 0;
-  const hasNext = rows.length > PAGE_SIZE;
-  const href = (next: { status?: Status; page?: number }) => {
+  const pages = Math.max(1, Math.ceil(matching.n / PAGE_SIZE));
+  const staffPages = Math.max(1, Math.ceil(staffCount.n / STAFF_PAGE_SIZE));
+  const href = (next: { status?: Status; page?: number; spage?: number }) => {
     const p = new URLSearchParams();
     if (q) p.set("q", q);
     const s = next.status ?? status;
     if (s !== "all") p.set("status", s);
     if ((next.page ?? 1) > 1) p.set("page", String(next.page));
+    const sPage = next.spage ?? staffPage;
+    if (sPage > 1) p.set("spage", String(sPage));
     const str = p.toString();
     return `/admin${str ? `?${str}` : ""}`;
   };
@@ -164,7 +175,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/admin">["
       </section>
 
       {/* Staff */}
-      <section className="mt-16 grid gap-10 lg:grid-cols-12">
+      <section id="staff" className="mt-16 grid scroll-mt-20 gap-10 lg:grid-cols-12">
         <div className="lg:col-span-4">
           <SectionTitle>Gate staff</SectionTitle>
           <p className="mt-2 text-ink-2">Create a login for each volunteer. They sign in at /staff/login and can only use the gate screen.</p>
@@ -202,7 +213,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/admin">["
                   </td>
                 </tr>
               ))}
-              {team.length <= 1 && (
+              {staffCount.n <= 1 && (
                 <tr>
                   <td colSpan={5} className="py-6 text-ink-3">
                     No gate staff yet. Add the first volunteer on the left.
@@ -211,11 +222,12 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/admin">["
               )}
             </tbody>
           </table>
+          {staffPages > 1 && <Pager page={staffPage} pages={staffPages} href={(n) => `${href({ page, spage: n })}#staff`} />}
         </div>
       </section>
 
       {/* Registry */}
-      <section className="mt-16">
+      <section id="participants" className="mt-16 scroll-mt-20">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <SectionTitle>Participants</SectionTitle>
           <nav className="flex border border-rule p-0.5 text-sm">
@@ -257,7 +269,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/admin">["
               </tr>
             </thead>
             <tbody className="divide-y divide-rule">
-              {rows.slice(0, PAGE_SIZE).map((r) => (
+              {rows.map((r) => (
                 <tr key={r.id} className="align-top">
                   <td className="py-3 pr-4 font-mono text-xs">{regId(r.id)}</td>
                   <td className="py-3 pr-4">
@@ -290,28 +302,14 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/admin">["
               {rows.length === 0 && (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-ink-3">
-                    {q || status !== "all" ? "No participants match this search." : "No registrations yet."}
+                    {matching.n ? "No participants on this page." : q || status !== "all" ? "No participants match this search." : "No registrations yet."}
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
         </div>
-        <div className="mt-4 flex items-center justify-between text-sm">
-          <span className="text-ink-3">Page {page}</span>
-          <div className="flex gap-2">
-            {page > 1 && (
-              <Link href={href({ page: page - 1 })} className="border border-rule px-3 py-1.5 font-medium hover:border-ink">
-                ← Newer
-              </Link>
-            )}
-            {hasNext && (
-              <Link href={href({ page: page + 1 })} className="border border-rule px-3 py-1.5 font-medium hover:border-ink">
-                Older →
-              </Link>
-            )}
-          </div>
-        </div>
+        <Pager page={page} pages={pages} href={(n) => `${href({ page: n })}#participants`} />
       </section>
     </>
   );

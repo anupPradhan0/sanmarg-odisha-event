@@ -25,7 +25,7 @@ export const registrations = pgTable(
     attendedAt: timestamp("attended_at", { withTimezone: true }),
     attendedBy: integer("attended_by").references(() => staff.id),
   },
-  (t) => [index("registrations_mobile_idx").on(t.mobile)],
+  (t) => [index("registrations_mobile_idx").on(t.mobile), index("registrations_attended_by_idx").on(t.attendedBy, t.attendedAt)],
 );
 
 export type Registration = typeof registrations.$inferSelect;

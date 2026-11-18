@@ -23,10 +23,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${geist.variable} ${display.variable} ${odia.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <header className="sticky top-0 z-30 border-b border-rule bg-paper/85 backdrop-blur-md">
-          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5">
+          <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 sm:px-5">
             <Link href="/" className="flex items-center gap-2">
               <span className="size-3 bg-maroon-700" aria-hidden />
-              <span className="font-serif text-[1.6rem] leading-none tracking-tight">Sanmarg Odisha</span>
+              <span className="font-serif text-[1.35rem] leading-none tracking-tight whitespace-nowrap min-[360px]:text-[1.6rem]">Sanmarg Odisha</span>
             </Link>
             <Suspense fallback={<LangSwitch lang="en" />}>
               <LangSwitch />

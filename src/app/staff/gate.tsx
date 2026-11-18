@@ -1,7 +1,8 @@
 "use client";
 
 import jsQR from "jsqr";
-import { Camera, Check, CircleAlert, Delete, Hash, RotateCcw, ScanLine, TriangleAlert, X } from "lucide-react";
+import { Camera, Check, ChevronRight, CircleAlert, Delete, Hash, RotateCcw, ScanLine, TriangleAlert, X } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { checkIn, lookup, scanPass, type CheckInResult, type Person } from "./actions";
 
@@ -11,10 +12,10 @@ const POPUP_MS = 2000;
 const time = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" });
 
-export function Gate() {
+export function Gate({ checkedIn }: { checkedIn: number }) {
   const [tab, setTab] = useState<"scan" | "number">("scan");
   const [result, setResult] = useState<Shown | null>(null);
-  const [count, setCount] = useState(0);
+  const [count, setCount] = useState(checkedIn);
   const [seq, setSeq] = useState(0); // remounts the popup so its 2 s timer bar restarts for every result
 
   const show = useCallback((r: Shown) => {
@@ -50,7 +51,7 @@ export function Gate() {
             role="tab"
             aria-selected={tab === key}
             onClick={() => setTab(key)}
-            className={`flex items-center justify-center gap-2 py-3.5 text-base font-semibold transition-colors ${
+            className={`flex touch-manipulation items-center justify-center gap-2 py-3.5 text-[15px] font-semibold whitespace-nowrap transition-colors sm:text-base ${
               tab === key ? "bg-ink text-paper" : "text-ink-2 hover:text-ink"
             }`}
           >
@@ -60,11 +61,22 @@ export function Gate() {
         ))}
       </div>
 
-      <div className="mt-5">{tab === "scan" ? <Scanner paused={!!result} onResult={show} /> : <NumberEntry onResult={show} />}</div>
+      <div className="mt-4 sm:mt-5">{tab === "scan" ? <Scanner paused={!!result} onResult={show} /> : <NumberEntry onResult={show} />}</div>
 
-      <p className="mt-6 border-t border-rule pt-4 text-sm text-ink-3">
-        You have checked in <span className="font-semibold text-ink">{count}</span> {count === 1 ? "person" : "people"} on this device.
-      </p>
+      <Link
+        href="/staff/mine"
+        className="mt-6 flex touch-manipulation items-center justify-between gap-3 border border-ink px-4 py-4 hover:bg-ink hover:text-paper sm:px-5"
+      >
+        <span>
+          <span className="block text-[11px] font-medium tracking-[0.18em] uppercase opacity-70">My check-ins</span>
+          <span className="mt-1 block whitespace-nowrap sm:text-lg">
+            <span className="font-serif text-3xl tabular-nums">{count.toLocaleString("en-IN")}</span> {count === 1 ? "person" : "people"}
+          </span>
+        </span>
+        <span className="flex shrink-0 items-center gap-1 text-sm font-semibold whitespace-nowrap">
+          See list <ChevronRight className="size-5" aria-hidden />
+        </span>
+      </Link>
 
       {result && <ResultPopup key={seq} result={result} onClose={close} />}
     </>
@@ -84,6 +96,7 @@ function Scanner({ paused, onResult }: { paused: boolean; onResult: (r: Shown) =
 
   useEffect(() => {
     let stream: MediaStream | undefined;
+    let wakeLock: WakeLockSentinel | undefined;
     let raf = 0;
     let stopped = false;
     let lastTick = 0;
@@ -126,6 +139,8 @@ function Scanner({ paused, onResult }: { paused: boolean; onResult: (r: Shown) =
         await video.play();
         setCamera("on");
         raf = requestAnimationFrame(tick);
+        wakeLock = await navigator.wakeLock?.request("screen").catch(() => undefined);
+        if (stopped) wakeLock?.release().catch(() => {});
       })
       .catch(() => {
         if (!stopped) setCamera("error");
@@ -135,18 +150,19 @@ function Scanner({ paused, onResult }: { paused: boolean; onResult: (r: Shown) =
       stopped = true;
       cancelAnimationFrame(raf);
       stream?.getTracks().forEach((t) => t.stop());
+      wakeLock?.release().catch(() => {});
     };
   }, [onResult, attempt]);
 
   return (
-    <div className="relative aspect-square w-full overflow-hidden bg-ink">
+    <div className="relative mx-auto aspect-square w-full max-w-[58svh] overflow-hidden bg-ink">
       <video ref={videoRef} playsInline muted className="size-full object-cover" />
 
       {camera === "on" && (
         <div className="pointer-events-none absolute inset-[14%]" aria-hidden>
           {["top-0 left-0 border-t-4 border-l-4", "top-0 right-0 border-t-4 border-r-4", "bottom-0 left-0 border-b-4 border-l-4", "bottom-0 right-0 border-b-4 border-r-4"].map(
             (c) => (
-              <span key={c} className={`absolute size-10 border-gold-400 ${c}`} />
+              <span key={c} className={`absolute size-8 border-gold-400 sm:size-10 ${c}`} />
             ),
           )}
           {!paused && <span className="absolute inset-x-2 h-0.5 animate-scan bg-gold-400 shadow-[0_0_12px_2px_var(--color-gold-400)]" />}
@@ -164,7 +180,7 @@ function Scanner({ paused, onResult }: { paused: boolean; onResult: (r: Shown) =
         </div>
       )}
       {camera === "error" && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center text-paper">
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-6 text-center text-paper sm:p-8">
           <Camera className="size-10 text-gold-400" aria-hidden />
           <p>Camera not available. Allow camera access in the browser, or use “Enter number”.</p>
           <button
@@ -172,7 +188,7 @@ function Scanner({ paused, onResult }: { paused: boolean; onResult: (r: Shown) =
               setCamera("starting");
               setAttempt((a) => a + 1);
             }}
-            className="inline-flex items-center gap-2 bg-paper px-5 py-3 font-semibold text-ink"
+            className="inline-flex touch-manipulation items-center gap-2 bg-paper px-5 py-3 font-semibold text-ink"
           >
             <RotateCcw className="size-4" aria-hidden />
             Try again
@@ -256,36 +272,22 @@ function NumberEntry({ onResult }: { onResult: (r: Shown) => void }) {
           autoComplete="off"
           placeholder="Mobile or Reg ID"
           aria-label="Mobile number or Reg ID"
-          className="min-w-0 flex-1 bg-transparent px-4 py-4 font-mono text-3xl tracking-[0.12em] tabular-nums outline-none placeholder:font-sans placeholder:text-lg placeholder:tracking-normal placeholder:text-ink-3"
+          className="min-w-0 flex-1 bg-transparent px-3 py-3.5 font-mono text-2xl tracking-[0.1em] sm:px-4 sm:py-4 sm:text-3xl sm:tracking-[0.12em] tabular-nums outline-none placeholder:font-sans placeholder:text-lg placeholder:tracking-normal placeholder:text-ink-3"
         />
         {value && (
-          <button type="button" onClick={() => update("")} aria-label="Clear" className="px-4 text-ink-3 hover:text-ink">
+          <button type="button" onClick={() => update("")} aria-label="Clear" className="touch-manipulation px-3 text-ink-3 hover:text-ink sm:px-4">
             <X className="size-6" />
           </button>
         )}
       </form>
-      <p className="mt-2 text-sm text-ink-3">
-        A 10-digit mobile searches automatically. For a Reg ID, type the number and press Find
-        <span className="pointer-coarse:hidden"> or Enter</span>.
-      </p>
+      {!people && (
+        <p className="mt-2 text-sm text-ink-3">
+          A 10-digit mobile searches automatically. For a Reg ID, type the number and press Find
+          <span className="pointer-coarse:hidden"> or Enter</span>.
+        </p>
+      )}
 
-      <div className="mt-4 grid grid-cols-3 gap-2 pointer-fine:hidden">
-        {KEYS.map((k) => (
-          <button
-            key={k}
-            type="button"
-            onClick={() => press(k)}
-            aria-label={k === "del" ? "Delete" : k === "find" ? "Find" : k}
-            className={`flex h-16 items-center justify-center text-3xl font-medium select-none active:scale-95 ${
-              k === "find" ? "bg-ink text-lg font-semibold text-paper" : "border border-rule bg-white active:bg-paper-2"
-            }`}
-          >
-            {k === "del" ? <Delete className="size-7" /> : k === "find" ? "Find" : k}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-5 space-y-3" aria-live="polite">
+      <div className="mt-3 space-y-3 empty:hidden" aria-live="polite">
         {pending && !people && <p className="text-ink-3">Searching…</p>}
         {people?.length === 0 && (
           <p className="border border-rule bg-white p-4 text-ink-2">
@@ -293,7 +295,7 @@ function NumberEntry({ onResult }: { onResult: (r: Shown) => void }) {
           </p>
         )}
         {people?.map((p) => (
-          <article key={p.id} className="border border-rule bg-white p-4">
+          <article key={p.id} className="border-2 border-ink bg-white p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h3 className="font-serif text-2xl leading-tight">{p.name}</h3>
@@ -315,13 +317,28 @@ function NumberEntry({ onResult }: { onResult: (r: Shown) => void }) {
               <button
                 onClick={() => mark(p)}
                 disabled={pending}
-                className="mt-3 flex w-full items-center justify-center gap-2 bg-maroon-700 py-4 text-lg font-semibold text-white active:bg-maroon-800 disabled:opacity-60"
+                className="mt-3 flex w-full touch-manipulation items-center justify-center gap-2 bg-maroon-700 py-4 text-lg font-semibold text-white active:bg-maroon-800 disabled:opacity-60"
               >
                 <Check className="size-5" aria-hidden />
                 Mark as arrived
               </button>
             )}
           </article>
+        ))}
+      </div>
+      <div className="mt-4 grid grid-cols-3 gap-2 pointer-fine:hidden">
+        {KEYS.map((k) => (
+          <button
+            key={k}
+            type="button"
+            onClick={() => press(k)}
+            aria-label={k === "del" ? "Delete" : k === "find" ? "Find" : k}
+            className={`flex h-[clamp(3.25rem,8svh,4rem)] touch-manipulation items-center justify-center text-3xl font-medium select-none active:scale-95 ${
+              k === "find" ? "bg-ink text-lg font-semibold text-paper" : "border border-rule bg-white active:bg-paper-2"
+            }`}
+          >
+            {k === "del" ? <Delete className="size-7" /> : k === "find" ? "Find" : k}
+          </button>
         ))}
       </div>
     </div>
@@ -338,7 +355,7 @@ function ResultPopup({ result, onClose }: { result: Shown; onClose: () => void }
   }[result.status];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 p-4 backdrop-blur-sm sm:items-center" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-ink/50 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur-sm sm:items-center sm:p-4" onClick={onClose}>
       <div
         role="alertdialog"
         aria-live="assertive"
@@ -348,14 +365,14 @@ function ResultPopup({ result, onClose }: { result: Shown; onClose: () => void }
         <button onClick={onClose} aria-label="Close" className="absolute top-2 right-2 flex size-12 items-center justify-center hover:bg-black/10">
           <X className="size-7" />
         </button>
-        <div className="p-6 pr-14">
+        <div className="p-5 pr-14 sm:p-6 sm:pr-14">
           <span className="flex size-14 items-center justify-center rounded-full bg-black/15">
             <look.Icon className="size-8" strokeWidth={2.5} aria-hidden />
           </span>
           <p className="mt-4 text-sm font-semibold tracking-[0.18em] uppercase opacity-80">{look.title}</p>
           {p ? (
             <>
-              <h2 className="mt-1 font-serif text-4xl leading-tight">{p.name}</h2>
+              <h2 className="mt-1 font-serif text-3xl leading-tight break-words sm:text-4xl">{p.name}</h2>
               <p className="mt-2 opacity-85">
                 {p.regId} · {p.district} · {p.category}
               </p>

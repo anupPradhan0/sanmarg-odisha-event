@@ -1,0 +1,1 @@
+CREATE INDEX "registrations_attended_by_idx" ON "registrations" USING btree ("attended_by","attended_at");
