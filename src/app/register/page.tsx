@@ -8,7 +8,7 @@ import { registrations, type Registration } from "@/db/schema";
 import { CATEGORIES, DISTRICTS, EVENT, regId } from "@/lib/event";
 import { getLang } from "@/lib/get-lang";
 import { pick } from "@/lib/i18n";
-import { ArrowDown, Award, Check, CircleCheck, Shirt, UserPlus, type LucideIcon } from "lucide-react";
+import { ArrowDown, Award, Check, CircleCheck, Download, Shirt, UserPlus, type LucideIcon } from "lucide-react";
 import { RegisterForm } from "./form";
 
 type T = ReturnType<typeof pick>;
@@ -160,11 +160,12 @@ async function Pass({ reg, t }: { reg: Registration; t: T }) {
       <a
         href={qr}
         download={`${id}.png`}
-        className="mt-5 block bg-maroon-700 py-4 text-center text-white active:bg-maroon-800"
+        className="mt-5 flex items-center justify-center gap-3 bg-maroon-700 px-6 py-5 text-lg font-semibold text-white shadow-[0_4px_0_0_var(--color-maroon-900)] transition hover:bg-maroon-800 active:translate-y-1 active:shadow-none"
       >
-        <span className="block text-xl font-bold">{t("Download pass", "ପାସ୍ ଡାଉନଲୋଡ କରନ୍ତୁ")}</span>
-        <span className="text-sm text-maroon-100">{t("or take a screenshot", "କିମ୍ବା ସ୍କ୍ରିନସଟ ନିଅନ୍ତୁ")}</span>
+        <Download className="size-6" aria-hidden />
+        {t("Download pass", "ପାସ୍ ଡାଉନଲୋଡ କରନ୍ତୁ")}
       </a>
+      <p className="mt-3 text-center text-sm text-ink-3">{t("or take a screenshot of this page", "କିମ୍ବା ଏହି ପୃଷ୍ଠାର ସ୍କ୍ରିନସଟ ନିଅନ୍ତୁ")}</p>
 
       <section className="mt-5 border border-rule bg-white/60 p-5">
         <h2 className="font-bold text-ink">{t("What next?", "ପରବର୍ତ୍ତୀ କଣ?")}</h2>

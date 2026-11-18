@@ -68,3 +68,9 @@ export const DISTRICTS = [
 ];
 
 export const regId = (id: number) => `SMO-2026-${String(id).padStart(4, "0")}`;
+
+/** "SMO-2026-0007", "0007" or "7" → 7. */
+export function parseRegId(input: string) {
+  const m = input.trim().toUpperCase().match(/^(?:SMO-?2026-?)?0*(\d{1,7})$/);
+  return m ? Number(m[1]) : null;
+}

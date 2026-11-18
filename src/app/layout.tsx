@@ -37,7 +37,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <footer className="border-t border-rule">
           <div className="mx-auto flex max-w-6xl flex-col gap-1 px-5 py-8 text-sm text-ink-3 sm:flex-row sm:justify-between">
             <span className="font-serif text-xl text-ink">Sanmarg Odisha</span>
-            <span>© 2026 · sanmargodisha.in</span>
+            <span>
+              © 2026 · sanmargodisha.in ·{" "}
+              <Link href="/staff/login" className="underline decoration-rule underline-offset-4 hover:text-ink">
+                Staff login
+              </Link>
+            </span>
           </div>
         </footer>
       </body>
