@@ -38,7 +38,7 @@ async function GateContent() {
         </div>
         <div className="flex shrink-0 gap-2">
           {me.role === "admin" && (
-            <Link href="/admin" className="flex size-11 items-center justify-center border border-rule hover:border-ink" aria-label="Dashboard">
+            <Link href="/admin" className="flex size-11 items-center justify-center border border-rule hover:border-ink" aria-label="Admin">
               <LayoutDashboard className="size-5" />
             </Link>
           )}
