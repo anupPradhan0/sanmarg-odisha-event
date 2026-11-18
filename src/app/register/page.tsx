@@ -7,8 +7,9 @@ import { db } from "@/db";
 import { registrations, type Registration } from "@/db/schema";
 import { CATEGORIES, DISTRICTS, EVENT, regId } from "@/lib/event";
 import { getLang } from "@/lib/get-lang";
-import { pick } from "@/lib/i18n";
+import { pick, type Lang } from "@/lib/i18n";
 import { ArrowDown, Award, Check, CircleCheck, Download, Shirt, UserPlus, type LucideIcon } from "lucide-react";
+import { Certificate } from "./certificate";
 import { RegisterForm } from "./form";
 
 type T = ReturnType<typeof pick>;
@@ -34,7 +35,7 @@ async function RegisterContent() {
       {!email ? (
         <GoogleSignIn t={t} />
       ) : reg ? (
-        <Pass reg={reg} t={t} />
+        <Pass reg={reg} t={t} lang={lang} />
       ) : (
         <section className="border border-rule bg-white/60 p-5">
           <h1 className="font-serif text-3xl leading-tight text-ink">{t("Fill your details", "ଆପଣଙ୍କ ବିବରଣୀ ଦିଅନ୍ତୁ")}</h1>
@@ -120,8 +121,26 @@ function GoogleSignIn({ t }: { t: T }) {
   );
 }
 
-async function Pass({ reg, t }: { reg: Registration; t: T }) {
+async function Pass({ reg, t, lang }: { reg: Registration; t: T; lang: Lang }) {
   const id = regId(reg.id);
+  if (reg.attendedAt) {
+    return (
+      <>
+        <section className="border border-green-700/30 bg-green-50 p-5 text-center">
+          <CircleCheck className="mx-auto size-12 text-green-700" strokeWidth={1.5} aria-hidden />
+          <h1 className="mt-2 font-serif text-3xl text-green-800">{t("Thank you for walking with us!", "ଆମ ସହ ଚାଲିଥିବାରୁ ଧନ୍ୟବାଦ!")}</h1>
+        </section>
+        <section className="mt-5">
+          <h2 className="mb-3 flex items-center gap-2 font-serif text-2xl text-ink">
+            <Award className="size-6 text-maroon-700" aria-hidden />
+            {t("Your certificate", "ଆପଣଙ୍କ ପ୍ରମାଣପତ୍ର")}
+          </h2>
+          <Certificate name={reg.name} regId={id} category={reg.category} lang={lang} />
+        </section>
+      </>
+    );
+  }
+
   const qr = await QRCode.toDataURL(id, { width: 480, margin: 1, color: { dark: "#70161b" } });
   const category = CATEGORIES.find((c) => c.value === reg.category);
   const district = DISTRICTS.find((d) => d.value === reg.district);
@@ -171,12 +190,8 @@ async function Pass({ reg, t }: { reg: Registration; t: T }) {
         <h2 className="font-bold text-ink">{t("What next?", "ପରବର୍ତ୍ତୀ କଣ?")}</h2>
         <ol className="mt-3 space-y-3">
           <Track done icon={UserPlus} text={t("Registered", "ପଞ୍ଜୀକରଣ ହୋଇଗଲା")} />
-          <Track
-            done={!!reg.attendedAt}
-            icon={Shirt}
-            text={t("Check in at the gate, get T-shirt & cap", "ଗେଟରେ ହାଜିରା ଦିଅନ୍ତୁ, ଟି-ସାର୍ଟ ଓ ଟୋପି ନିଅନ୍ତୁ")}
-          />
-          <Track done={false} icon={Award} text={t("Download certificate (after check-in)", "ପ୍ରମାଣପତ୍ର ଡାଉନଲୋଡ (ହାଜିରା ପରେ)")} />
+          <Track done={false} icon={Shirt} text={t("Check in at the gate, get T-shirt & cap", "ଗେଟରେ ହାଜିରା ଦିଅନ୍ତୁ, ଟି-ସାର୍ଟ ଓ ଟୋପି ନିଅନ୍ତୁ")} />
+          <Track done={false} icon={Award} text={t("Certificate unlocks here after gate check-in", "ଗେଟରେ ହାଜିରା ପରେ ପ୍ରମାଣପତ୍ର ଏଠାରେ ମିଳିବ")} />
         </ol>
       </section>
     </>
